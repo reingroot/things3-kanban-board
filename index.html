@@ -320,6 +320,7 @@
   // Unchanged cards are left in place — no flicker.
   function reconcile(col, tasks) {
     const container = document.getElementById(`cards-${col}`);
+    container.querySelectorAll('.loading-card').forEach(el => el.remove());
     const freshById = new Map(tasks.map(t => [t.id, t]));
     const currentCards = [...container.querySelectorAll('.card')];
     const currentIds = new Set(currentCards.map(c => c.dataset.id));
