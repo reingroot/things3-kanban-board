@@ -434,16 +434,24 @@
         }
 
         if (!projectUuid) {
+          if (headingUuid) {
+            // Heading not resolvable via API (no start date) — group by heading_title
+            const syntheticKey = '_unresolved_' + headingUuid;
+            if (!bucket.projects.has(syntheticKey)) {
+              bucket.projects.set(syntheticKey, {
+                project: { uuid: syntheticKey, title: t.heading_title || t.project_title || '?' },
+                noHeading: [],
+                headings: new Map()
+              });
+            }
+            bucket.projects.get(syntheticKey).noHeading.push(t);
+            continue;
+          }
           bucket.inbox.push(t);
           continue;
         }
 
         const knownProject = projectMap.get(projectUuid);
-        if (!knownProject && !t.area) {
-          // Project not in API response and no area on the todo — treat as inbox
-          bucket.inbox.push(t);
-          continue;
-        }
 
         if (!bucket.projects.has(projectUuid)) {
           const project = knownProject || { uuid: projectUuid, title: t.project_title || '?', area: t.area, area_title: t.area_title };
@@ -546,6 +554,8 @@
         bucket.inbox.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
       }
 
+      // Sidebar-listed projects (have an area, appear in hierarchy)
+      const renderedProjects = new Set();
       for (const sItem of index.sidebar) {
         if (sItem.type !== 'area') continue;
         for (const project of sItem.projects) {
@@ -555,7 +565,17 @@
           if (todos.length === 0) continue;
           container.appendChild(makeGroupHeader(project.title));
           todos.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
+          renderedProjects.add(project.uuid);
         }
+      }
+
+      // Projects not in sidebar (no area or not returned by API — e.g. sub-projects)
+      for (const [uuid, group] of bucket.projects) {
+        if (renderedProjects.has(uuid)) continue;
+        const todos = [...group.noHeading, ...[...group.headings.values()].flatMap(h => h.todos)];
+        if (todos.length === 0) continue;
+        container.appendChild(makeGroupHeader(group.project.title));
+        todos.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
       }
 
       for (const [, group] of bucket.other) {
