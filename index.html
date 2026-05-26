@@ -438,8 +438,15 @@
           continue;
         }
 
+        const knownProject = projectMap.get(projectUuid);
+        if (!knownProject && !t.area) {
+          // Project not in API response and no area on the todo — treat as inbox
+          bucket.inbox.push(t);
+          continue;
+        }
+
         if (!bucket.projects.has(projectUuid)) {
-          const project = projectMap.get(projectUuid) || { uuid: projectUuid, title: t.project_title || '?' };
+          const project = knownProject || { uuid: projectUuid, title: t.project_title || '?', area: t.area, area_title: t.area_title };
           bucket.projects.set(projectUuid, { project, noHeading: [], headings: new Map() });
         }
 
