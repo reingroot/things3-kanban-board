@@ -541,7 +541,8 @@
         if (col !== 'today' && todayUuids.has(t.uuid)) continue;
         // things-api bug: logged recurring instances appear in /today with wrong
         // start type and no modification history — filter them out
-        if (col === 'today' && t.start === 'Someday' && t.modified === null) continue;
+        // but keep tasks that have a start_date (intentionally scheduled Someday tasks)
+        if (col === 'today' && t.start === 'Someday' && t.modified === null && !t.start_date) continue;
 
         if (!t.heading && !t.project && !t.area) {
           bucket.inbox.push(t);
