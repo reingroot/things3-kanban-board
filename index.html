@@ -270,6 +270,7 @@
       letter-spacing: 0.2px;
     }
 
+    .chip-date               { background: #2c2c2e; color: #636366; }
     .chip-deadline           { background: #2c2c2e; color: #636366; }
     .chip-deadline.due-soon  { background: #2e2200; color: #ff9f0a; }
     .chip-deadline.due-today { background: #2e1400; color: #ff6b00; }
@@ -663,7 +664,7 @@
     title.textContent = task.title;
     el.appendChild(title);
 
-    if ((task.tags && task.tags.length > 0) || task.deadline) {
+    if ((task.tags && task.tags.length > 0) || task.start_date || task.deadline) {
       const chips = document.createElement('div');
       chips.className = 'chips';
 
@@ -674,6 +675,17 @@
           chip.textContent = tag;
           chips.appendChild(chip);
         });
+      }
+
+      if (task.start_date) {
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const d = new Date(task.start_date + 'T00:00:00');
+        const opts = { day: 'numeric', month: 'short' };
+        if (d.getFullYear() !== today.getFullYear()) opts.year = 'numeric';
+        const chip = document.createElement('span');
+        chip.className = 'chip chip-date';
+        chip.textContent = d.toLocaleDateString('en-GB', opts);
+        chips.appendChild(chip);
       }
 
       if (task.deadline) {
