@@ -368,6 +368,7 @@
   const COLS = ['inbox', 'someday', 'anytime', 'today'];
 
   let logbookUuids = new Set();
+  let thingsAuthToken = '';
 
   let dragActive = false;
   let lastDropTime = 0;
@@ -378,6 +379,13 @@
   let currentIndex = null;
 
   // ── Fetch ────────────────────────────────────────────────────────────────
+
+  async function fetchThingsAuthToken() {
+    try {
+      const r = await fetch('/things-auth-token');
+      if (r.ok) thingsAuthToken = await r.text();
+    } catch (e) { /* non-fatal */ }
+  }
 
   async function fetchLogbook() {
     try {
@@ -762,7 +770,7 @@
   async function load(initial = false) {
     if (initial) {
       COLS.forEach(c => showLoading(c));
-      await fetchLogbook();
+      await Promise.all([fetchLogbook(), fetchThingsAuthToken()]);
     }
     try {
       const data = await fetchAll();
@@ -848,7 +856,8 @@
       lastDropTime = Date.now();
       dragActive = false;
 
-      window.location.href = `things:///update?id=${encodeURIComponent(taskId)}&when=${targetCol}`;
+      const token = thingsAuthToken ? `&auth-token=${encodeURIComponent(thingsAuthToken)}` : '';
+      window.location.href = `things:///update?id=${encodeURIComponent(taskId)}&when=${targetCol}${token}`;
     });
   }
 

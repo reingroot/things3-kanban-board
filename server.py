@@ -28,7 +28,12 @@ PROXY_PATHS = {'/today', '/anytime', '/someday', '/inbox', '/logbook'}
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path.split('?')[0] in PROXY_PATHS:
+        if self.path == '/things-auth-token':
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(TOKEN.encode())
+        elif self.path.split('?')[0] in PROXY_PATHS:
             self._proxy(self.path)
         else:
             super().do_GET()
