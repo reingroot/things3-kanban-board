@@ -179,6 +179,36 @@
     .assign-heading-zone.az-t { border-color: #ff9f0a; background: rgba(255,159,10,0.07); color: #ff9f0a; }
     .assign-heading-zone.az-t .az-arrow { color: #ff9f0a; }
 
+    /* ── Assignment toast ────────────────────────────────────────────────── */
+
+    #assign-toast {
+      position: fixed;
+      top: 54px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-12px);
+      background: #2c2c2e;
+      border: 1px solid #48484a;
+      border-radius: 10px;
+      padding: 9px 16px;
+      font-size: 12px;
+      color: #ebebf5;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s, transform 0.18s;
+      white-space: nowrap;
+      z-index: 200;
+    }
+
+    #assign-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #assign-toast .t-green  { color: #32d74b; font-weight: 600; }
+    #assign-toast .t-blue   { color: #0a84ff; font-weight: 600; }
+    #assign-toast .t-orange { color: #ff9f0a; font-weight: 600; }
+
     /* ── Board ───────────────────────────────────────────────────────────── */
 
     .board {
@@ -363,6 +393,8 @@
   <div class="dot" id="status-dot"></div>
   <h1>Things 3</h1>
 </header>
+
+<div id="assign-toast"></div>
 
 <div id="banner">
   <span>Cannot reach things-api — is it running on localhost:5225?</span>
@@ -729,10 +761,12 @@
 
         // Optimistic: remove card from its column
         const card = document.querySelector(`.card[data-id="${taskId}"]`);
+        const cardTitle = card ? card.querySelector('.card-title')?.textContent : taskId;
         if (card) card.remove();
         lastDropTime = Date.now();
         dragActive = false;
         closeAssignPanel();
+        showAssignToast(cardTitle, project.title, h.title, assignActiveWhen);
 
         const body = { list_id: project.uuid, when: assignActiveWhen };
         if (h.uuid) body.heading_id = h.uuid;
@@ -773,6 +807,18 @@
     const wrap = document.querySelector(`.sidebar-proj-wrap[data-project-id="${assignOpenId}"]`);
     if (wrap) wrap.classList.remove('assign-open');
     assignOpenId = null;
+  }
+
+  let assignToastTimer;
+  function showAssignToast(cardTitle, projectTitle, headingTitle, when) {
+    const el = document.getElementById('assign-toast');
+    const whenCls = when === 'someday' ? 't-blue' : when === 'today' ? 't-orange' : 't-green';
+    const whenLabel = when === 'someday' ? 'Someday' : when === 'today' ? 'Today' : 'Next';
+    const dest = headingTitle === '(no heading)' ? projectTitle : `${projectTitle} / ${headingTitle}`;
+    el.innerHTML = `<span class="${whenCls}">${cardTitle}</span> → ${dest} · <span class="${whenCls}">${whenLabel}</span>`;
+    el.classList.add('show');
+    clearTimeout(assignToastTimer);
+    assignToastTimer = setTimeout(() => el.classList.remove('show'), 3000);
   }
 
   function setupSidebarAssign(nav) {
