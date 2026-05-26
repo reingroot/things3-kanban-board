@@ -135,6 +135,50 @@
     .sidebar-item:hover { color: #f2f2f7; background: #2c2c2e; }
     .sidebar-item.active { color: #f2f2f7; background: #2c2c2e; }
 
+    /* ── Sidebar: project assignment panel ──────────────────────────────── */
+
+    .sidebar-proj-wrap { margin: 1px 8px; border-radius: 8px; overflow: hidden; }
+    .sidebar-proj-wrap .sidebar-item { margin: 0; border-radius: 0; }
+    .sidebar-proj-wrap.assign-open { background: #242426; }
+
+    .assign-panel { max-height: 0; overflow: hidden; transition: max-height 0.2s ease; }
+    .sidebar-proj-wrap.assign-open .assign-panel { max-height: 500px; }
+
+    .assign-panel-inner { padding: 6px 8px 8px; }
+
+    .assign-sub-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+      text-transform: uppercase; color: #48484a; padding: 2px 2px 4px;
+    }
+
+    .assign-when-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px; margin-bottom: 8px; }
+
+    .assign-when-btn {
+      padding: 6px 0; border-radius: 6px; font-size: 9px; font-weight: 700;
+      letter-spacing: 0.3px; text-align: center; text-transform: uppercase;
+      border: 1.5px solid #2c2c2e; background: #1c1c1e; color: #3a3a3c;
+      transition: all 0.12s;
+    }
+    .assign-when-btn[data-when="someday"].sel { background: #061a3a; border-color: #0a84ff; color: #0a84ff; }
+    .assign-when-btn[data-when="anytime"].sel  { background: #071f0e; border-color: #32d74b; color: #32d74b; }
+    .assign-when-btn[data-when="today"].sel    { background: #271400; border-color: #ff9f0a; color: #ff9f0a; }
+
+    .assign-heading-zone {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 7px; border-radius: 5px; margin-bottom: 3px;
+      border: 1.5px dashed #3a3a3c; color: #636366; font-size: 11px;
+      transition: all 0.1s;
+    }
+    .assign-heading-zone:last-child { margin-bottom: 0; }
+    .assign-heading-zone .az-arrow { font-size: 10px; color: #3a3a3c; transition: color 0.1s; }
+
+    .assign-heading-zone.az-s { border-color: #0a84ff; background: rgba(10,84,255,0.07); color: #0a84ff; }
+    .assign-heading-zone.az-s .az-arrow { color: #0a84ff; }
+    .assign-heading-zone.az-n { border-color: #32d74b; background: rgba(50,215,75,0.07); color: #32d74b; }
+    .assign-heading-zone.az-n .az-arrow { color: #32d74b; }
+    .assign-heading-zone.az-t { border-color: #ff9f0a; background: rgba(255,159,10,0.07); color: #ff9f0a; }
+    .assign-heading-zone.az-t .az-arrow { color: #ff9f0a; }
+
     /* ── Board ───────────────────────────────────────────────────────────── */
 
     .board {
@@ -384,6 +428,10 @@
   let selectedProject = null;  // null = All, 'inbox', 'other', or project UUID
   let currentIndex = null;
 
+  let assignOpenId = null;
+  let assignActiveWhen = 'anytime';
+  let assignCloseTimer = null;
+
   // ── Fetch ────────────────────────────────────────────────────────────────
 
 
@@ -546,7 +594,16 @@
     const hasOther = COLS.some(col => byCol[col].other.size > 0);
     if (hasOther) sidebar.push({ type: 'other' });
 
-    return { sidebar, byCol };
+    // Per-project heading list for the assignment panel
+    const projectHeadings = new Map();
+    for (const [, h] of headingMap) {
+      if (h.project) {
+        if (!projectHeadings.has(h.project)) projectHeadings.set(h.project, []);
+        projectHeadings.get(h.project).push({ uuid: h.uuid, title: h.title });
+      }
+    }
+
+    return { sidebar, byCol, projectHeadings };
   }
 
   // ── Render: sidebar ───────────────────────────────────────────────────────
@@ -563,8 +620,7 @@
 
     for (const item of index.sidebar) {
       if (item.type === 'inbox') {
-        const row = makeSidebarItem('Inbox', 'inbox');
-        nav.appendChild(row);
+        nav.appendChild(makeSidebarItem('Inbox', 'inbox'));
 
       } else if (item.type === 'area') {
         const label = document.createElement('div');
@@ -573,14 +629,15 @@
         nav.appendChild(label);
 
         for (const project of item.projects) {
-          nav.appendChild(makeSidebarItem(project.title, project.uuid));
+          nav.appendChild(makeSidebarProjectItem(project, index.projectHeadings));
         }
 
       } else if (item.type === 'other') {
-        const row = makeSidebarItem('Other', 'other');
-        nav.appendChild(row);
+        nav.appendChild(makeSidebarItem('Other', 'other'));
       }
     }
+
+    setupSidebarAssign(nav);
   }
 
   function makeSidebarItem(label, id) {
@@ -589,6 +646,150 @@
     row.textContent = label;
     row.addEventListener('click', () => { selectedProject = id; renderAll(); });
     return row;
+  }
+
+  function makeSidebarProjectItem(project, projectHeadings) {
+    const wrap = document.createElement('div');
+    wrap.className = 'sidebar-proj-wrap';
+    wrap.dataset.projectId = project.uuid;
+
+    const row = document.createElement('div');
+    row.className = 'sidebar-item' + (selectedProject === project.uuid ? ' active' : '');
+    row.textContent = project.title;
+    row.addEventListener('click', () => { selectedProject = project.uuid; renderAll(); });
+    wrap.appendChild(row);
+
+    // Assignment panel
+    const panel = document.createElement('div');
+    panel.className = 'assign-panel';
+    const inner = document.createElement('div');
+    inner.className = 'assign-panel-inner';
+
+    // When selector
+    const whenLabel = document.createElement('div');
+    whenLabel.className = 'assign-sub-label';
+    whenLabel.textContent = 'Move to';
+    inner.appendChild(whenLabel);
+
+    const whenRow = document.createElement('div');
+    whenRow.className = 'assign-when-row';
+    for (const w of ['someday', 'anytime', 'today']) {
+      const btn = document.createElement('div');
+      btn.className = 'assign-when-btn' + (w === 'anytime' ? ' sel' : '');
+      btn.dataset.when = w;
+      btn.textContent = w === 'someday' ? 'Someday' : w === 'anytime' ? 'Next' : 'Today';
+      btn.addEventListener('dragenter', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        clearTimeout(assignCloseTimer);
+        assignActiveWhen = w;
+        whenRow.querySelectorAll('.assign-when-btn').forEach(b => b.classList.remove('sel'));
+        btn.classList.add('sel');
+      });
+      btn.addEventListener('dragover', e => e.preventDefault());
+      btn.addEventListener('drop', e => e.preventDefault());
+      whenRow.appendChild(btn);
+    }
+    inner.appendChild(whenRow);
+
+    // Heading zones
+    const hdLabel = document.createElement('div');
+    hdLabel.className = 'assign-sub-label';
+    hdLabel.textContent = 'Under heading';
+    inner.appendChild(hdLabel);
+
+    const headings = projectHeadings.get(project.uuid) || [];
+    const zones = [{ uuid: null, title: '(no heading)' }, ...headings];
+    const whenOverClass = { someday: 'az-s', anytime: 'az-n', today: 'az-t' };
+
+    for (const h of zones) {
+      const zone = document.createElement('div');
+      zone.className = 'assign-heading-zone';
+      zone.innerHTML = `<span class="az-arrow">→</span><span>${h.title}</span>`;
+      zone.dataset.headingUuid = h.uuid || '';
+      zone.dataset.headingTitle = h.title;
+      zone.dataset.projectUuid = project.uuid;
+
+      zone.addEventListener('dragenter', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        clearTimeout(assignCloseTimer);
+        zone.classList.add(whenOverClass[assignActiveWhen]);
+      });
+      zone.addEventListener('dragleave', e => {
+        if (!zone.contains(e.relatedTarget))
+          zone.classList.remove('az-s', 'az-n', 'az-t');
+      });
+      zone.addEventListener('dragover', e => e.preventDefault());
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('az-s', 'az-n', 'az-t');
+        const taskId = e.dataTransfer.getData('taskId');
+        if (!taskId) return;
+
+        // Optimistic: remove card from its column
+        const card = document.querySelector(`.card[data-id="${taskId}"]`);
+        if (card) card.remove();
+        lastDropTime = Date.now();
+        dragActive = false;
+        closeAssignPanel();
+
+        const body = { list_id: project.uuid, when: assignActiveWhen };
+        if (h.uuid) body.heading_id = h.uuid;
+
+        fetch(`/todos/${encodeURIComponent(taskId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        }).then(r => {
+          if (!r.ok) r.text().then(t => console.error('Assign failed:', r.status, t));
+          else setTimeout(reload, 800);
+        }).catch(err => console.error('Assign failed:', err));
+      });
+
+      inner.appendChild(zone);
+    }
+
+    panel.appendChild(inner);
+    wrap.appendChild(panel);
+    return wrap;
+  }
+
+  function openAssignPanel(projectId) {
+    if (assignOpenId === projectId) { clearTimeout(assignCloseTimer); return; }
+    closeAssignPanel();
+    assignOpenId = projectId;
+    assignActiveWhen = 'anytime';
+    const wrap = document.querySelector(`.sidebar-proj-wrap[data-project-id="${projectId}"]`);
+    if (!wrap) return;
+    wrap.classList.add('assign-open');
+    wrap.querySelectorAll('.assign-when-btn').forEach(b => {
+      b.classList.toggle('sel', b.dataset.when === 'anytime');
+    });
+  }
+
+  function closeAssignPanel() {
+    if (!assignOpenId) return;
+    const wrap = document.querySelector(`.sidebar-proj-wrap[data-project-id="${assignOpenId}"]`);
+    if (wrap) wrap.classList.remove('assign-open');
+    assignOpenId = null;
+  }
+
+  function setupSidebarAssign(nav) {
+    nav.querySelectorAll('.sidebar-proj-wrap').forEach(wrap => {
+      wrap.addEventListener('dragenter', e => {
+        e.preventDefault();
+        clearTimeout(assignCloseTimer);
+        openAssignPanel(wrap.dataset.projectId);
+      });
+      wrap.addEventListener('dragover', e => e.preventDefault());
+    });
+
+    nav.addEventListener('dragleave', e => {
+      if (!nav.contains(e.relatedTarget)) {
+        assignCloseTimer = setTimeout(closeAssignPanel, 300);
+      }
+    });
   }
 
   // ── Render: columns ───────────────────────────────────────────────────────
@@ -826,6 +1027,8 @@
       dragEl = null;
     }
     document.querySelectorAll('.column').forEach(c => c.classList.remove('drag-over'));
+    clearTimeout(assignCloseTimer);
+    assignCloseTimer = setTimeout(closeAssignPanel, 150);
   }
 
   function setupColumn(colEl) {
