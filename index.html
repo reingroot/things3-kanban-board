@@ -270,6 +270,14 @@
       letter-spacing: 0.2px;
     }
 
+    .card-uuid {
+      font-size: 9px;
+      color: #3a3a3c;
+      margin-top: 6px;
+      user-select: all;
+      cursor: text;
+    }
+
     .chip-date               { background: #2c2c2e; color: #636366; }
     .chip-deadline           { background: #2c2c2e; color: #636366; }
     .chip-deadline.due-soon  { background: #2e2200; color: #ff9f0a; }
@@ -705,6 +713,11 @@
 
       el.appendChild(chips);
     }
+
+    const uuid = document.createElement('div');
+    uuid.className = 'card-uuid';
+    uuid.textContent = task.uuid;
+    el.appendChild(uuid);
 
     el.addEventListener('dragstart', onDragStart);
     el.addEventListener('dragend', onDragEnd);
