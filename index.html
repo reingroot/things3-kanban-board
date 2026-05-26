@@ -72,10 +72,74 @@
 
     #banner button:hover { background: #ff6961; }
 
+    /* ── Content: sidebar + board ─────────────────────────────────────────── */
+
+    .content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────────────────── */
+
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      border-right: 1px solid #2c2c2e;
+      overflow-y: auto;
+      padding: 8px 0 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+
+    .sidebar-all {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: #8e8e93;
+      padding: 6px 12px;
+      margin: 2px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .sidebar-all:hover { color: #f2f2f7; background: #2c2c2e; }
+    .sidebar-all.active { color: #f2f2f7; background: #2c2c2e; }
+
+    .sidebar-area {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #48484a;
+      padding: 14px 16px 4px;
+    }
+
+    .sidebar-item {
+      font-size: 12px;
+      font-weight: 500;
+      color: #8e8e93;
+      padding: 5px 12px;
+      margin: 1px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-item:hover { color: #f2f2f7; background: #2c2c2e; }
+    .sidebar-item.active { color: #f2f2f7; background: #2c2c2e; }
+
+    /* ── Board ───────────────────────────────────────────────────────────── */
+
     .board {
       display: flex;
       flex: 1;
-      gap: 0;
       overflow: hidden;
     }
 
@@ -131,7 +195,7 @@
     .cards {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 10px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -140,6 +204,26 @@
     .cards::-webkit-scrollbar { width: 4px; }
     .cards::-webkit-scrollbar-track { background: transparent; }
     .cards::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+
+    /* ── Group headers ───────────────────────────────────────────────────── */
+
+    .group-header {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #48484a;
+      padding: 4px 2px;
+      border-bottom: 1px solid #2c2c2e;
+      margin-top: 8px;
+      pointer-events: none;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .group-header:first-child { margin-top: 0; }
+
+    /* ── Cards ───────────────────────────────────────────────────────────── */
 
     .card {
       background: #2c2c2e;
@@ -219,32 +303,36 @@
   <button onclick="reload()">Retry</button>
 </div>
 
-<div class="board">
-  <div class="column col-someday" id="col-someday" data-col="someday">
-    <div class="column-header">
-      <div class="column-indicator"></div>
-      <span class="column-title">Someday</span>
-      <span class="column-count" id="count-someday">—</span>
-    </div>
-    <div class="cards" id="cards-someday"></div>
-  </div>
+<div class="content">
+  <nav class="sidebar" id="sidebar"></nav>
 
-  <div class="column col-next" id="col-next" data-col="anytime">
-    <div class="column-header">
-      <div class="column-indicator"></div>
-      <span class="column-title">Next</span>
-      <span class="column-count" id="count-anytime">—</span>
+  <div class="board">
+    <div class="column col-someday" id="col-someday" data-col="someday">
+      <div class="column-header">
+        <div class="column-indicator"></div>
+        <span class="column-title">Someday</span>
+        <span class="column-count" id="count-someday">—</span>
+      </div>
+      <div class="cards" id="cards-someday"></div>
     </div>
-    <div class="cards" id="cards-anytime"></div>
-  </div>
 
-  <div class="column col-today" id="col-today" data-col="today">
-    <div class="column-header">
-      <div class="column-indicator"></div>
-      <span class="column-title">Today</span>
-      <span class="column-count" id="count-today">—</span>
+    <div class="column col-next" id="col-next" data-col="anytime">
+      <div class="column-header">
+        <div class="column-indicator"></div>
+        <span class="column-title">Next</span>
+        <span class="column-count" id="count-anytime">—</span>
+      </div>
+      <div class="cards" id="cards-anytime"></div>
     </div>
-    <div class="cards" id="cards-today"></div>
+
+    <div class="column col-today" id="col-today" data-col="today">
+      <div class="column-header">
+        <div class="column-indicator"></div>
+        <span class="column-title">Today</span>
+        <span class="column-count" id="count-today">—</span>
+      </div>
+      <div class="cards" id="cards-today"></div>
+    </div>
   </div>
 </div>
 
@@ -259,6 +347,9 @@
   let lastDropTime = 0;
   let dragEl = null;
   let dragSourceCol = null;
+
+  let selectedProject = null;  // null = All, 'inbox', 'other', or project UUID
+  let currentIndex = null;
 
   // ── Fetch ────────────────────────────────────────────────────────────────
 
@@ -275,7 +366,248 @@
     return { someday, anytime, today };
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // ── Index ─────────────────────────────────────────────────────────────────
+
+  function buildIndex(someday, anytime, today) {
+    const colData = { someday, anytime, today };
+
+    // Build lookup maps scanning all items across all columns
+    const projectMap = new Map();  // projectUuid → { uuid, title, area, area_title }
+    const headingMap = new Map();  // headingUuid → { uuid, title, project }
+    const areaOrder = [];
+    const areaSet = new Set();
+
+    for (const tasks of Object.values(colData)) {
+      for (const t of tasks) {
+        if (t.type === 'project') {
+          if (!projectMap.has(t.uuid)) {
+            projectMap.set(t.uuid, { uuid: t.uuid, title: t.title, area: t.area, area_title: t.area_title });
+          }
+          if (t.area && !areaSet.has(t.area)) {
+            areaSet.add(t.area);
+            areaOrder.push({ uuid: t.area, title: t.area_title });
+          }
+        } else if (t.type === 'heading') {
+          if (!headingMap.has(t.uuid)) {
+            headingMap.set(t.uuid, { uuid: t.uuid, title: t.title, project: t.project });
+          }
+        }
+      }
+    }
+
+    // Bucket todos per column
+    const byCol = {};
+    for (const col of COLS) {
+      byCol[col] = {
+        inbox: [],
+        projects: new Map(),  // projectUuid → { project, noHeading: [], headings: Map }
+        other: new Map()      // areaUuid → { area, todos: [] }
+      };
+    }
+
+    for (const col of COLS) {
+      const bucket = byCol[col];
+      for (const t of colData[col]) {
+        if (t.type !== 'to-do') continue;
+
+        if (!t.heading && !t.project && !t.area) {
+          bucket.inbox.push(t);
+          continue;
+        }
+
+        if (!t.heading && !t.project && t.area) {
+          // Area-direct, no project
+          if (!bucket.other.has(t.area)) {
+            bucket.other.set(t.area, { area: { uuid: t.area, title: t.area_title }, todos: [] });
+          }
+          bucket.other.get(t.area).todos.push(t);
+          continue;
+        }
+
+        // Has project directly or via heading
+        let projectUuid = t.project || null;
+        const headingUuid = t.heading || null;
+
+        if (headingUuid && !projectUuid) {
+          const h = headingMap.get(headingUuid);
+          projectUuid = h ? h.project : null;
+        }
+
+        if (!projectUuid) {
+          bucket.inbox.push(t);
+          continue;
+        }
+
+        if (!bucket.projects.has(projectUuid)) {
+          const project = projectMap.get(projectUuid) || { uuid: projectUuid, title: t.project_title || '?' };
+          bucket.projects.set(projectUuid, { project, noHeading: [], headings: new Map() });
+        }
+
+        const proj = bucket.projects.get(projectUuid);
+
+        if (headingUuid) {
+          if (!proj.headings.has(headingUuid)) {
+            const heading = headingMap.get(headingUuid) || { uuid: headingUuid, title: t.heading_title || '?' };
+            proj.headings.set(headingUuid, { heading, todos: [] });
+          }
+          proj.headings.get(headingUuid).todos.push(t);
+        } else {
+          proj.noHeading.push(t);
+        }
+      }
+    }
+
+    // Build sidebar (only sections/projects with todos in any column)
+    const projectsWithTodos = new Set();
+    for (const col of COLS) {
+      for (const uuid of byCol[col].projects.keys()) projectsWithTodos.add(uuid);
+    }
+
+    const sidebar = [];
+
+    const hasInbox = COLS.some(col => byCol[col].inbox.length > 0);
+    if (hasInbox) sidebar.push({ type: 'inbox' });
+
+    for (const area of areaOrder) {
+      const projects = [...projectMap.values()].filter(p => p.area === area.uuid && projectsWithTodos.has(p.uuid));
+      if (projects.length > 0) {
+        sidebar.push({ type: 'area', uuid: area.uuid, title: area.title, projects });
+      }
+    }
+
+    const hasOther = COLS.some(col => byCol[col].other.size > 0);
+    if (hasOther) sidebar.push({ type: 'other' });
+
+    return { sidebar, byCol };
+  }
+
+  // ── Render: sidebar ───────────────────────────────────────────────────────
+
+  function renderSidebar(index) {
+    const nav = document.getElementById('sidebar');
+    nav.innerHTML = '';
+
+    const allBtn = document.createElement('div');
+    allBtn.className = 'sidebar-all' + (selectedProject === null ? ' active' : '');
+    allBtn.textContent = 'All';
+    allBtn.addEventListener('click', () => { selectedProject = null; renderAll(); });
+    nav.appendChild(allBtn);
+
+    for (const item of index.sidebar) {
+      if (item.type === 'inbox') {
+        const row = makeSidebarItem('Inbox', 'inbox');
+        nav.appendChild(row);
+
+      } else if (item.type === 'area') {
+        const label = document.createElement('div');
+        label.className = 'sidebar-area';
+        label.textContent = item.title;
+        nav.appendChild(label);
+
+        for (const project of item.projects) {
+          nav.appendChild(makeSidebarItem(project.title, project.uuid));
+        }
+
+      } else if (item.type === 'other') {
+        const row = makeSidebarItem('Other', 'other');
+        nav.appendChild(row);
+      }
+    }
+  }
+
+  function makeSidebarItem(label, id) {
+    const row = document.createElement('div');
+    row.className = 'sidebar-item' + (selectedProject === id ? ' active' : '');
+    row.textContent = label;
+    row.addEventListener('click', () => { selectedProject = id; renderAll(); });
+    return row;
+  }
+
+  // ── Render: columns ───────────────────────────────────────────────────────
+
+  function renderCol(col, index) {
+    const container = document.getElementById(`cards-${col}`);
+    container.innerHTML = '';
+
+    const bucket = index.byCol[col];
+    let totalCards = 0;
+
+    if (selectedProject === null) {
+      // All: group by project, sidebar order
+      if (bucket.inbox.length > 0) {
+        container.appendChild(makeGroupHeader('Inbox'));
+        bucket.inbox.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
+      }
+
+      for (const sItem of index.sidebar) {
+        if (sItem.type !== 'area') continue;
+        for (const project of sItem.projects) {
+          const group = bucket.projects.get(project.uuid);
+          if (!group) continue;
+          const todos = [...group.noHeading, ...[...group.headings.values()].flatMap(h => h.todos)];
+          if (todos.length === 0) continue;
+          container.appendChild(makeGroupHeader(project.title));
+          todos.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
+        }
+      }
+
+      for (const [, group] of bucket.other) {
+        if (group.todos.length === 0) continue;
+        container.appendChild(makeGroupHeader(`Other — ${group.area.title}`));
+        group.todos.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
+      }
+
+    } else if (selectedProject === 'inbox') {
+      bucket.inbox.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
+
+    } else if (selectedProject === 'other') {
+      for (const [, group] of bucket.other) {
+        if (group.todos.length === 0) continue;
+        container.appendChild(makeGroupHeader(group.area.title));
+        group.todos.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
+      }
+
+    } else {
+      // Specific project: group by heading
+      const group = bucket.projects.get(selectedProject);
+      if (group) {
+        group.noHeading.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
+        for (const [, hGroup] of group.headings) {
+          if (hGroup.todos.length === 0) continue;
+          container.appendChild(makeGroupHeader(hGroup.heading.title));
+          hGroup.todos.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
+        }
+      }
+    }
+
+    // Empty state
+    if (totalCards === 0) {
+      const msg = document.createElement('div');
+      msg.className = 'empty-state';
+      msg.textContent = selectedProject !== null ? 'No tasks in this filter' : 'No tasks';
+      container.appendChild(msg);
+    }
+
+    // Count badge
+    const count = document.getElementById(`count-${col}`);
+    if (count) count.textContent = totalCards || '—';
+  }
+
+  function makeGroupHeader(title) {
+    const el = document.createElement('div');
+    el.className = 'group-header';
+    el.draggable = false;
+    el.textContent = title;
+    return el;
+  }
+
+  function renderAll() {
+    if (!currentIndex) return;
+    renderSidebar(currentIndex);
+    COLS.forEach(col => renderCol(col, currentIndex));
+  }
+
+  // ── Card ──────────────────────────────────────────────────────────────────
 
   function makeCard(task, col) {
     const el = document.createElement('div');
@@ -306,6 +638,8 @@
     return el;
   }
 
+  // ── Loading ───────────────────────────────────────────────────────────────
+
   function showLoading(col) {
     const container = document.getElementById(`cards-${col}`);
     container.innerHTML = '';
@@ -316,52 +650,15 @@
     }
   }
 
-  // Diff-by-ID reconciliation: add new cards, remove stale ones.
-  // Unchanged cards are left in place — no flicker.
-  function reconcile(col, tasks) {
-    const container = document.getElementById(`cards-${col}`);
-    container.querySelectorAll('.loading-card').forEach(el => el.remove());
-    const freshById = new Map(tasks.map(t => [t.uuid, t]));
-    const currentCards = [...container.querySelectorAll('.card')];
-    const currentIds = new Set(currentCards.map(c => c.dataset.id));
-
-    // Remove cards no longer in this column
-    currentCards.forEach(c => {
-      if (!freshById.has(c.dataset.id)) c.remove();
-    });
-
-    // Add cards that appeared
-    freshById.forEach((task, id) => {
-      if (!currentIds.has(id)) {
-        container.appendChild(makeCard(task, col));
-      }
-    });
-
-    // Empty state
-    const remaining = container.querySelectorAll('.card');
-    const empty = container.querySelector('.empty-state');
-    if (remaining.length === 0 && !empty) {
-      const msg = document.createElement('div');
-      msg.className = 'empty-state';
-      msg.textContent = 'No tasks';
-      container.appendChild(msg);
-    } else if (remaining.length > 0 && empty) {
-      empty.remove();
-    }
-
-    // Update count badge
-    const count = document.getElementById(`count-${col}`);
-    if (count) count.textContent = tasks.length;
-  }
-
   // ── Load / Poll ───────────────────────────────────────────────────────────
 
   async function load(initial = false) {
     if (initial) COLS.forEach(c => showLoading(c));
     try {
       const data = await fetchAll();
+      currentIndex = buildIndex(data.someday, data.anytime, data.today);
       setError(false);
-      COLS.forEach(col => reconcile(col, data[col]));
+      renderAll();
     } catch (e) {
       setError(true);
     }
@@ -395,7 +692,6 @@
     e.dataTransfer.setData('taskId', dragEl.dataset.id);
     e.dataTransfer.setData('sourceCol', dragSourceCol);
     e.dataTransfer.effectAllowed = 'move';
-    // Small delay so the dragging style applies after the browser snapshot
     setTimeout(() => dragEl && dragEl.classList.add('dragging'), 0);
   }
 
@@ -416,10 +712,7 @@
     });
 
     colEl.addEventListener('dragleave', e => {
-      // Only remove highlight when leaving the column itself, not child elements
-      if (!colEl.contains(e.relatedTarget)) {
-        colEl.classList.remove('drag-over');
-      }
+      if (!colEl.contains(e.relatedTarget)) colEl.classList.remove('drag-over');
     });
 
     colEl.addEventListener('drop', e => {
@@ -430,10 +723,7 @@
       const sourceCol = e.dataTransfer.getData('sourceCol');
       const targetCol = colEl.dataset.col;
 
-      if (!taskId || sourceCol === targetCol) {
-        dragActive = false;
-        return;
-      }
+      if (!taskId || sourceCol === targetCol) { dragActive = false; return; }
 
       // Optimistic DOM move
       const card = document.querySelector(`.card[data-id="${taskId}"]`);
@@ -441,12 +731,6 @@
         const targetCards = colEl.querySelector('.cards');
         card.dataset.col = targetCol;
         targetCards.appendChild(card);
-
-        // Fix empty states
-        updateEmptyState(document.getElementById(`cards-${sourceCol}`));
-        updateEmptyState(targetCards);
-
-        // Update counts
         updateCount(sourceCol);
         updateCount(targetCol);
       }
@@ -454,33 +738,17 @@
       lastDropTime = Date.now();
       dragActive = false;
 
-      // Write to Things 3
       window.location.href = `things:///update?id=${encodeURIComponent(taskId)}&when=${targetCol}`;
     });
-  }
-
-  function updateEmptyState(container) {
-    const cards = container.querySelectorAll('.card');
-    const empty = container.querySelector('.empty-state');
-    if (cards.length === 0 && !empty) {
-      const msg = document.createElement('div');
-      msg.className = 'empty-state';
-      msg.textContent = 'No tasks';
-      container.appendChild(msg);
-    } else if (cards.length > 0 && empty) {
-      empty.remove();
-    }
   }
 
   function updateCount(col) {
     const container = document.getElementById(`cards-${col}`);
     const count = document.getElementById(`count-${col}`);
-    if (container && count) {
-      count.textContent = container.querySelectorAll('.card').length;
-    }
+    if (container && count) count.textContent = container.querySelectorAll('.card').length;
   }
 
-  // ── Init ─────────────────────────────────────────────────────────────────
+  // ── Init ──────────────────────────────────────────────────────────────────
 
   document.querySelectorAll('.column').forEach(setupColumn);
   load(true);
