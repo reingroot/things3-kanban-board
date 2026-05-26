@@ -1,5 +1,17 @@
 # TODOS
 
+## Drag-and-Drop Write Path
+
+**What:** Verify that dragging a card to a new column actually updates Things 3.
+
+**Why:** The `things:///update?id=<uuid>&when=<col>` URL is correctly constructed (uuid fix confirmed), but it requires `window.location.href` navigation which can't be tested in a headless browser. Needs manual test in a real browser with Things 3 running.
+
+**How to verify:** Open http://localhost:8080, drag a Today task to Someday. Within 2 seconds, open Things 3 and confirm the task moved to Someday. Drag it back.
+
+**Blocked by:** Needs real browser + Things 3 running.
+
+---
+
 ## things-api CORS Configuration
 
 **What:** Determine whether things-api ships with CORS enabled by default, and document the exact flag or workaround.
