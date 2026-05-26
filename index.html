@@ -385,6 +385,86 @@
       0%, 100% { opacity: 0.4; }
       50% { opacity: 0.7; }
     }
+
+    /* ── GTD Briefing overlay ────────────────────────────────────────────── */
+    #briefing-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.72);
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 40px 20px 40px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease;
+      overflow-y: auto;
+    }
+    #briefing-overlay.visible {
+      opacity: 1; pointer-events: all;
+    }
+    #briefing-modal {
+      background: #1c1c1e;
+      border: 1px solid #3a3a3c;
+      border-radius: 18px;
+      width: 100%; max-width: 620px;
+      flex-shrink: 0;
+      transform: translateY(-12px);
+      transition: transform 0.25s ease;
+      overflow: hidden;
+    }
+    #briefing-overlay.visible #briefing-modal {
+      transform: translateY(0);
+    }
+    #briefing-modal-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      padding: 26px 26px 20px;
+      border-bottom: 1px solid #2c2c2e;
+    }
+    #briefing-modal-header .greeting { font-size: 22px; font-weight: 300; color: #f2f2f7; }
+    #briefing-modal-header .greeting strong { font-weight: 600; }
+    #briefing-modal-header .date-line { font-size: 12px; color: #636366; margin-top: 3px; }
+    #briefing-close {
+      background: #2c2c2e; border: 1px solid #3a3a3c; color: #8e8e93;
+      width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+      font-size: 16px; line-height: 1; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-left: 16px; font-family: inherit;
+    }
+    #briefing-close:hover { background: #3a3a3c; color: #f2f2f7; }
+    #briefing-body { padding: 20px 26px 26px; display: flex; flex-direction: column; gap: 12px; }
+    .b-section { background: #2c2c2e; border-radius: 12px; overflow: hidden; }
+    .b-section-header { display: flex; align-items: center; gap: 12px; padding: 15px 18px 13px; }
+    .b-badge { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; }
+    .b-badge-red    { background: #3d1a1a; color: #ff453a; }
+    .b-badge-amber  { background: #2e2200; color: #ff9f0a; }
+    .b-badge-green  { background: #1a2e1a; color: #30d158; }
+    .b-badge-blue   { background: #1a2240; color: #0a84ff; }
+    .b-badge-purple { background: #2e1a40; color: #bf5af2; }
+    .b-section-title { font-size: 15px; font-weight: 600; flex: 1; }
+    .b-section-status { font-size: 13px; font-weight: 500; }
+    .b-section-body { padding: 0 18px 15px; }
+    .b-metric-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid #3a3a3c; }
+    .b-metric-icon { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+    .b-metric-text { flex: 1; }
+    .b-metric-label { font-size: 12px; color: #aeaeb2; }
+    .b-metric-value { font-size: 19px; font-weight: 600; line-height: 1.2; }
+    .b-action { font-size: 11px; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+    .b-action-red    { background: #3d1a1a; color: #ff453a; }
+    .b-action-amber  { background: #2e2200; color: #ff9f0a; }
+    .b-action-green  { background: #1a2e1a; color: #30d158; }
+    .b-task-list { margin-top: 2px; }
+    .b-task-item { font-size: 12px; color: #aeaeb2; padding: 5px 0; border-top: 1px solid #3a3a3c; display: flex; align-items: center; gap: 8px; }
+    .b-task-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+    .b-two { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .b-two .b-metric-row { border-top: none; padding-top: 4px; }
+    .b-col-red    { color: #ff453a; }
+    .b-col-amber  { color: #ff9f0a; }
+    .b-col-green  { color: #30d158; }
+    .b-col-blue   { color: #0a84ff; }
+    .b-col-cyan   { color: #64d2ff; }
+    #briefing-open-btn {
+      margin-left: auto;
+      background: none; border: 1px solid #3a3a3c; color: #636366;
+      padding: 5px 12px; border-radius: 8px; cursor: pointer;
+      font-family: inherit; font-size: 12px; display: flex; align-items: center; gap: 5px;
+    }
+    #briefing-open-btn:hover { background: #2c2c2e; color: #aeaeb2; }
   </style>
 </head>
 <body>
@@ -392,7 +472,23 @@
 <header>
   <div class="dot" id="status-dot"></div>
   <h1>Things 3</h1>
+  <button id="briefing-open-btn" onclick="showBriefing()">GTD Briefing</button>
 </header>
+
+<div id="briefing-overlay">
+  <div id="briefing-modal">
+    <div id="briefing-modal-header">
+      <div>
+        <div class="greeting">Good <span id="b-timeofday">morning</span>, <strong>Rein.</strong></div>
+        <div class="date-line" id="b-date-line"></div>
+      </div>
+      <button id="briefing-close" onclick="closeBriefing()" title="Close">✕</button>
+    </div>
+    <div id="briefing-body">
+      <div style="color:#636366;font-size:13px;text-align:center;padding:20px 0">Loading briefing...</div>
+    </div>
+  </div>
+</div>
 
 <div id="assign-toast"></div>
 
@@ -465,6 +561,8 @@
   let assignOpenId = null;
   let assignActiveWhen = 'anytime';
   let assignCloseTimer = null;
+  let lastColData = null;
+  let logbookFull = [];
 
   // ── Fetch ────────────────────────────────────────────────────────────────
 
@@ -475,6 +573,7 @@
       if (!r.ok) return;
       const data = await r.json();
       logbookUuids = new Set(data.map(t => t.uuid));
+      logbookFull = data;
     } catch (e) { /* non-fatal */ }
   }
 
@@ -1029,9 +1128,11 @@
     }
     try {
       const data = await fetchAll();
+      lastColData = data;
       currentIndex = buildIndex(data.inbox, data.someday, data.anytime, data.today);
       setError(false);
       renderAll();
+      if (initial) maybeShowBriefing();
     } catch (e) {
       setError(true);
     }
@@ -1048,6 +1149,216 @@
     if (Date.now() - lastDropTime < DROP_BUFFER_MS) return;
     load();
   }
+
+  // ── GTD Briefing ─────────────────────────────────────────────────────────
+
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function maybeShowBriefing() {
+    if (localStorage.getItem('briefing-dismissed') === todayStr()) return;
+    showBriefing();
+  }
+
+  function showBriefing() {
+    const h = new Date().getHours();
+    document.getElementById('b-timeofday').textContent = h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+    document.getElementById('b-date-line').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    if (lastColData) renderBriefingContent(lastColData, logbookFull);
+    document.getElementById('briefing-overlay').classList.add('visible');
+  }
+
+  function closeBriefing() {
+    document.getElementById('briefing-overlay').classList.remove('visible');
+    localStorage.setItem('briefing-dismissed', todayStr());
+  }
+
+  function renderBriefingContent(colData, logbook) {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const weekAgo = new Date(now - 7 * 864e5).toISOString().slice(0, 10);
+    const monthAgo = new Date(now - 30 * 864e5).toISOString().slice(0, 10);
+    const todos = arr => arr.filter(t => t.type === 'to-do');
+
+    const inboxTodos  = todos(colData.inbox);
+    const todayTodos  = todos(colData.today);
+    const anyTodos    = todos(colData.anytime);
+    const somedayTodos = todos(colData.someday);
+    const log = todos(logbook);
+
+    const overdueTasks = todayTodos.filter(t => t.deadline && t.deadline.slice(0, 10) < today);
+    const dueSoonTasks = [...todayTodos, ...anyTodos].filter(t =>
+      t.deadline && t.deadline.slice(0, 10) >= today && (new Date(t.deadline) - now) / 864e5 <= 7
+    );
+
+    const doneWeek  = log.filter(t => t.status === 'completed' && t.stop_date >= weekAgo).length;
+    const doneMonth = log.filter(t => t.status === 'completed' && t.stop_date >= monthAgo).length;
+
+    const todayProjects = new Set(todayTodos.map(t => t.project).filter(Boolean));
+    const stalledMap = {};
+    anyTodos.forEach(t => {
+      if (t.project && !todayProjects.has(t.project))
+        stalledMap[t.project_title || t.project] = (stalledMap[t.project_title || t.project] || 0) + 1;
+    });
+    const stalled = Object.entries(stalledMap).sort((a, b) => b[1] - a[1]);
+
+    const sev = (val, lo, hi) => val <= lo ? 'green' : val <= hi ? 'amber' : 'red';
+    const fmt = d => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+    const inboxSev  = sev(inboxTodos.length, 5, 15);
+    const todaySev  = sev(todayTodos.length, 10, 20);
+    const stalledSev = sev(stalled.length, 0, 3);
+    const reflectSev = stalled.length === 0 && somedayTodos.length <= 20 ? 'green' : stalled.length > 3 || somedayTodos.length > 50 ? 'red' : 'amber';
+
+    const inboxAction  = inboxTodos.length === 0 ? 'Inbox zero!' : inboxTodos.length <= 5 ? 'Looking good' : inboxTodos.length <= 15 ? 'Process soon' : 'Schedule inbox time';
+    const todayAction  = todayTodos.length <= 10 ? 'Focused day ahead' : todayTodos.length <= 20 ? 'Busy but doable' : 'Consider deferring some';
+    const reflectAction = somedayTodos.length <= 20 ? 'Someday healthy' : somedayTodos.length <= 50 ? 'Review someday list' : 'Prune someday list';
+
+    const sections = [];
+
+    // Capture
+    sections.push(`
+      <div class="b-section">
+        <div class="b-section-header">
+          <span class="b-badge b-badge-${inboxSev}">Capture</span>
+          <span class="b-section-title">Inbox</span>
+          <span class="b-section-status b-col-${inboxSev}">${inboxTodos.length} items</span>
+        </div>
+        <div class="b-section-body">
+          <div class="b-metric-row">
+            <div class="b-metric-icon" style="background:#2c2c2e">📥</div>
+            <div class="b-metric-text">
+              <div class="b-metric-value b-col-${inboxSev}">${inboxTodos.length}</div>
+              <div class="b-metric-label">unprocessed items</div>
+            </div>
+            <span class="b-action b-action-${inboxSev}">${inboxAction}</span>
+          </div>
+        </div>
+      </div>`);
+
+    // Engage
+    sections.push(`
+      <div class="b-section">
+        <div class="b-section-header">
+          <span class="b-badge b-badge-blue">Engage</span>
+          <span class="b-section-title">Today</span>
+          <span class="b-section-status b-col-${todaySev}">${todayTodos.length} tasks</span>
+        </div>
+        <div class="b-section-body">
+          <div class="b-metric-row">
+            <div class="b-metric-icon" style="background:#1a2240">📅</div>
+            <div class="b-metric-text">
+              <div class="b-metric-value b-col-${todaySev}">${todayTodos.length}</div>
+              <div class="b-metric-label">tasks scheduled for today</div>
+            </div>
+            <span class="b-action b-action-${todaySev}">${todayAction}</span>
+          </div>
+          ${overdueTasks.length ? `
+          <div class="b-metric-row">
+            <div class="b-metric-icon" style="background:#3d1a1a">⚠️</div>
+            <div class="b-metric-text">
+              <div class="b-metric-value b-col-red">${overdueTasks.length}</div>
+              <div class="b-metric-label">overdue deadline${overdueTasks.length !== 1 ? 's' : ''}</div>
+            </div>
+            <span class="b-action b-action-red">Deal with these first</span>
+          </div>
+          <div class="b-task-list">${overdueTasks.slice(0, 4).map(t => `
+            <div class="b-task-item">
+              <div class="b-task-dot" style="background:#ff453a"></div>
+              <span style="flex:1">${t.title || '(untitled)'}</span>
+              <span class="b-col-red" style="font-size:11px">${fmt(t.deadline)}</span>
+            </div>`).join('')}</div>` : ''}
+          ${dueSoonTasks.length ? `
+          <div class="b-metric-row">
+            <div class="b-metric-icon" style="background:#2e2200">🗓</div>
+            <div class="b-metric-text">
+              <div class="b-metric-value b-col-amber">${dueSoonTasks.length}</div>
+              <div class="b-metric-label">due within 7 days</div>
+            </div>
+            <span class="b-action b-action-amber">Keep on radar</span>
+          </div>` : ''}
+        </div>
+      </div>`);
+
+    // Reflect
+    sections.push(`
+      <div class="b-section">
+        <div class="b-section-header">
+          <span class="b-badge b-badge-purple">Reflect</span>
+          <span class="b-section-title">Weekly Review Health</span>
+          <span class="b-section-status b-col-${reflectSev}">${reflectSev === 'green' ? 'Healthy' : reflectSev === 'amber' ? 'Needs attention' : 'Review overdue'}</span>
+        </div>
+        <div class="b-section-body">
+          <div class="b-two">
+            <div class="b-metric-row">
+              <div class="b-metric-icon" style="background:#2e1a40">🌙</div>
+              <div class="b-metric-text">
+                <div class="b-metric-value b-col-${sev(somedayTodos.length, 20, 50)}">${somedayTodos.length}</div>
+                <div class="b-metric-label">someday / maybe</div>
+              </div>
+            </div>
+            <div class="b-metric-row">
+              <div class="b-metric-icon" style="background:#2e2200">⏸</div>
+              <div class="b-metric-text">
+                <div class="b-metric-value b-col-${stalled.length > 0 ? 'amber' : 'green'}">${stalled.length}</div>
+                <div class="b-metric-label">stalled projects</div>
+              </div>
+            </div>
+          </div>
+          ${stalled.length ? `<div class="b-task-list">${stalled.slice(0, 4).map(s => `
+            <div class="b-task-item">
+              <div class="b-task-dot"></div>
+              <span style="flex:1">${s[0]}</span>
+              <span style="color:#636366;font-size:11px">${s[1]} tasks</span>
+            </div>`).join('')}</div>` : ''}
+          <div class="b-metric-row" style="margin-top:4px">
+            <div class="b-metric-text"><div class="b-metric-label">Someday review status</div></div>
+            <span class="b-action b-action-${sev(somedayTodos.length, 20, 50)}">${reflectAction}</span>
+          </div>
+        </div>
+      </div>`);
+
+    // Momentum
+    const dailyAvg = (doneMonth / 30).toFixed(1);
+    sections.push(`
+      <div class="b-section">
+        <div class="b-section-header">
+          <span class="b-badge b-badge-green">Momentum</span>
+          <span class="b-section-title">Completion Velocity</span>
+          <span class="b-section-status b-col-green">${doneWeek} this week</span>
+        </div>
+        <div class="b-section-body">
+          <div class="b-two">
+            <div class="b-metric-row">
+              <div class="b-metric-icon" style="background:#1a2e1a">✅</div>
+              <div class="b-metric-text">
+                <div class="b-metric-value b-col-green">${doneWeek}</div>
+                <div class="b-metric-label">completed this week</div>
+              </div>
+            </div>
+            <div class="b-metric-row">
+              <div class="b-metric-icon" style="background:#1a2240">📈</div>
+              <div class="b-metric-text">
+                <div class="b-metric-value b-col-blue">${doneMonth}</div>
+                <div class="b-metric-label">completed this month</div>
+              </div>
+            </div>
+          </div>
+          <div class="b-metric-row">
+            <div class="b-metric-text"><div class="b-metric-label">Daily average (30 days)</div></div>
+            <span class="b-action b-action-green">${dailyAvg} tasks / day</span>
+          </div>
+        </div>
+      </div>`);
+
+    document.getElementById('briefing-body').innerHTML = sections.join('');
+  }
+
+  // Close briefing on backdrop click (not modal click)
+  document.getElementById('briefing-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('briefing-overlay')) closeBriefing();
+  });
 
   function setError(isError) {
     const banner = document.getElementById('banner');
