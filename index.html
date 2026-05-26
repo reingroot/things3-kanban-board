@@ -850,7 +850,6 @@
     if (selectedProject === null) {
       // All: group by project, sidebar order
       if (bucket.inbox.length > 0) {
-        if (col === 'inbox') container.appendChild(makeGroupHeader('Inbox'));
         bucket.inbox.forEach(t => { container.appendChild(makeCard(t, col)); totalCards++; });
       }
 
