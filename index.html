@@ -284,6 +284,13 @@
     .chip-deadline.due-today { background: #2e1400; color: #ff6b00; }
     .chip-deadline.overdue   { background: #2e0000; color: #ff453a; }
 
+    .card-separator {
+      height: 1px;
+      background: #3a3a3c;
+      margin: 4px 0;
+      flex-shrink: 0;
+    }
+
     .empty-state {
       text-align: center;
       padding: 32px 16px;
@@ -683,6 +690,12 @@
   // ── Card ──────────────────────────────────────────────────────────────────
 
   function makeCard(task, col) {
+    if (!task.title) {
+      const sep = document.createElement('div');
+      sep.className = 'card-separator';
+      return sep;
+    }
+
     const el = document.createElement('div');
     el.className = 'card';
     el.draggable = true;
