@@ -281,7 +281,7 @@
     const el = document.createElement('div');
     el.className = 'card';
     el.draggable = true;
-    el.dataset.id = task.id;
+    el.dataset.id = task.uuid;
     el.dataset.col = col;
 
     const title = document.createElement('div');
@@ -321,7 +321,7 @@
   function reconcile(col, tasks) {
     const container = document.getElementById(`cards-${col}`);
     container.querySelectorAll('.loading-card').forEach(el => el.remove());
-    const freshById = new Map(tasks.map(t => [t.id, t]));
+    const freshById = new Map(tasks.map(t => [t.uuid, t]));
     const currentCards = [...container.querySelectorAll('.card')];
     const currentIds = new Set(currentCards.map(c => c.dataset.id));
 
