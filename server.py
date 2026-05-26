@@ -24,7 +24,7 @@ if not TOKEN:
     print(f'Error: THINGS_API_TOKEN missing in {CONFIG}. Run: uvx things-api init')
     raise SystemExit(1)
 
-PROXY_PATHS = {'/today', '/anytime', '/someday', '/inbox'}
+PROXY_PATHS = {'/today', '/anytime', '/someday', '/inbox', '/logbook'}
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
