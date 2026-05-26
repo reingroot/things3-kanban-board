@@ -188,6 +188,7 @@
       flex-shrink: 0;
     }
 
+    .col-inbox   .column-indicator { background: #8e8e93; }
     .col-someday .column-indicator { background: #636366; }
     .col-next    .column-indicator { background: #0a84ff; }
     .col-today   .column-indicator { background: #ff9f0a; }
@@ -307,6 +308,15 @@
   <nav class="sidebar" id="sidebar"></nav>
 
   <div class="board">
+    <div class="column col-inbox" id="col-inbox" data-col="inbox">
+      <div class="column-header">
+        <div class="column-indicator"></div>
+        <span class="column-title">Inbox</span>
+        <span class="column-count" id="count-inbox">—</span>
+      </div>
+      <div class="cards" id="cards-inbox"></div>
+    </div>
+
     <div class="column col-someday" id="col-someday" data-col="someday">
       <div class="column-header">
         <div class="column-indicator"></div>
@@ -341,7 +351,7 @@
   const POLL_MS = 30_000;
   const DROP_BUFFER_MS = 2000;
 
-  const COLS = ['someday', 'anytime', 'today'];
+  const COLS = ['inbox', 'someday', 'anytime', 'today'];
 
   let dragActive = false;
   let lastDropTime = 0;
@@ -360,16 +370,16 @@
   }
 
   async function fetchAll() {
-    const [someday, anytime, today] = await Promise.all(
+    const [inbox, someday, anytime, today] = await Promise.all(
       COLS.map(c => fetchCol(c))
     );
-    return { someday, anytime, today };
+    return { inbox, someday, anytime, today };
   }
 
   // ── Index ─────────────────────────────────────────────────────────────────
 
-  function buildIndex(someday, anytime, today) {
-    const colData = { someday, anytime, today };
+  function buildIndex(inbox, someday, anytime, today) {
+    const colData = { inbox, someday, anytime, today };
 
     // Build lookup maps scanning all items across all columns
     const projectMap = new Map();  // projectUuid → { uuid, title, area, area_title }
@@ -683,7 +693,7 @@
     if (initial) COLS.forEach(c => showLoading(c));
     try {
       const data = await fetchAll();
-      currentIndex = buildIndex(data.someday, data.anytime, data.today);
+      currentIndex = buildIndex(data.inbox, data.someday, data.anytime, data.today);
       setError(false);
       renderAll();
     } catch (e) {
