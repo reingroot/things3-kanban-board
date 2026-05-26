@@ -406,6 +406,11 @@
   function buildIndex(inbox, someday, anytime, today) {
     const colData = { inbox, someday, anytime, today };
 
+    // Today takes priority — build its UUID set so other columns can skip duplicates
+    const todayUuids = new Set(
+      (colData.today || []).filter(t => t.type === 'to-do').map(t => t.uuid)
+    );
+
     // Build lookup maps scanning all items across all columns
     const projectMap = new Map();  // projectUuid → { uuid, title, area, area_title }
     const headingMap = new Map();  // headingUuid → { uuid, title, project }
@@ -445,6 +450,7 @@
       for (const t of colData[col]) {
         if (t.type !== 'to-do') continue;
         if (logbookUuids.has(t.uuid)) continue;
+        if (col !== 'today' && todayUuids.has(t.uuid)) continue;
         // things-api bug: logged recurring instances appear in /today with wrong
         // start type and no modification history — filter them out
         if (col === 'today' && t.start !== 'Today' && t.modified === null) continue;
