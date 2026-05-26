@@ -12,6 +12,18 @@
 
 ---
 
+## Empty-Title Todos Show as Blank Cards
+
+**What:** Todos with empty `title` in Things 3 render as blank card rectangles.
+
+**Why:** 2 todos in the "Personal AI" project have `title: ""` in the API response. The board renders them faithfully — blank cards. Found during /qa on 2026-05-26.
+
+**How to fix:** In `makeCard()`, add a fallback: `title.textContent = task.title || '(untitled)'`.
+
+**Severity:** Low / cosmetic.
+
+---
+
 ## things-api CORS Configuration
 
 **What:** Determine whether things-api ships with CORS enabled by default, and document the exact flag or workaround.
