@@ -14,7 +14,7 @@ try:
         for line in f.read().splitlines():
             if line.startswith('THINGS_API_TOKEN='):
                 TOKEN = line.split('=', 1)[1].strip()
-            if line.startswith('THINGS_API_PORT='):
+            elif line.startswith('THINGS_API_PORT='):
                 PORT_API = int(line.split('=', 1)[1].strip())
 except FileNotFoundError:
     print(f'Error: things-api not configured. Run: uvx things-api init')
@@ -28,15 +28,19 @@ PROXY_PATHS = {'/today', '/anytime', '/someday', '/inbox', '/logbook'}
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/things-auth-token':
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(TOKEN.encode())
-        elif self.path.split('?')[0] in PROXY_PATHS:
+        if self.path.split('?')[0] in PROXY_PATHS:
             self._proxy(self.path)
         else:
             super().do_GET()
+
+    def do_PUT(self):
+        if self.path.startswith('/todos/'):
+            length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(length) if length else b'{}'
+            self._proxy_put(self.path, body)
+        else:
+            self.send_response(404)
+            self.end_headers()
 
     def _proxy(self, path):
         url = f'http://localhost:{PORT_API}{path}'
@@ -48,6 +52,31 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(data)
+        except Exception as e:
+            self.send_response(502)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(str(e).encode())
+
+    def _proxy_put(self, path, body):
+        url = f'http://localhost:{PORT_API}{path}'
+        req = urllib.request.Request(
+            url, data=body, method='PUT',
+            headers={'Authorization': f'Bearer {TOKEN}', 'Content-Type': 'application/json'}
+        )
+        try:
+            with urllib.request.urlopen(req) as resp:
+                data = resp.read()
+                status = resp.status
+            self.send_response(status)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(data)
+        except urllib.error.HTTPError as e:
+            self.send_response(e.code)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(e.read())
         except Exception as e:
             self.send_response(502)
             self.send_header('Content-Type', 'text/plain')

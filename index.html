@@ -368,7 +368,6 @@
   const COLS = ['inbox', 'someday', 'anytime', 'today'];
 
   let logbookUuids = new Set();
-  let thingsAuthToken = '';
 
   let dragActive = false;
   let lastDropTime = 0;
@@ -380,12 +379,6 @@
 
   // ── Fetch ────────────────────────────────────────────────────────────────
 
-  async function fetchThingsAuthToken() {
-    try {
-      const r = await fetch('/things-auth-token');
-      if (r.ok) thingsAuthToken = await r.text();
-    } catch (e) { /* non-fatal */ }
-  }
 
   async function fetchLogbook() {
     try {
@@ -770,7 +763,7 @@
   async function load(initial = false) {
     if (initial) {
       COLS.forEach(c => showLoading(c));
-      await Promise.all([fetchLogbook(), fetchThingsAuthToken()]);
+      await fetchLogbook();
     }
     try {
       const data = await fetchAll();
@@ -856,8 +849,15 @@
       lastDropTime = Date.now();
       dragActive = false;
 
-      const token = thingsAuthToken ? `&auth-token=${encodeURIComponent(thingsAuthToken)}` : '';
-      window.location.href = `things:///update?id=${encodeURIComponent(taskId)}&when=${targetCol}${token}`;
+      if (targetCol !== 'inbox') {
+        fetch(`/todos/${encodeURIComponent(taskId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ when: targetCol })
+        }).then(r => {
+          if (!r.ok) r.text().then(t => console.error('Update failed:', r.status, t));
+        }).catch(e => console.error('Update failed:', e));
+      }
     });
   }
 
