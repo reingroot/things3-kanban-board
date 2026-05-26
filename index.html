@@ -270,6 +270,11 @@
       letter-spacing: 0.2px;
     }
 
+    .chip-deadline           { background: #2c2c2e; color: #636366; }
+    .chip-deadline.due-soon  { background: #2e2200; color: #ff9f0a; }
+    .chip-deadline.due-today { background: #2e1400; color: #ff6b00; }
+    .chip-deadline.overdue   { background: #2e0000; color: #ff453a; }
+
     .empty-state {
       text-align: center;
       padding: 32px 16px;
@@ -658,15 +663,34 @@
     title.textContent = task.title;
     el.appendChild(title);
 
-    if (task.tags && task.tags.length > 0) {
+    if ((task.tags && task.tags.length > 0) || task.deadline) {
       const chips = document.createElement('div');
       chips.className = 'chips';
-      task.tags.forEach(tag => {
+
+      if (task.tags) {
+        task.tags.forEach(tag => {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.textContent = tag;
+          chips.appendChild(chip);
+        });
+      }
+
+      if (task.deadline) {
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const due = new Date(task.deadline + 'T00:00:00');
+        const diff = Math.round((due - today) / 86400000);
         const chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.textContent = tag;
+        chip.className = 'chip chip-deadline';
+        if (diff < 0)      chip.classList.add('overdue');
+        else if (diff === 0) chip.classList.add('due-today');
+        else if (diff <= 7)  chip.classList.add('due-soon');
+        const opts = { day: 'numeric', month: 'short' };
+        if (due.getFullYear() !== today.getFullYear()) opts.year = 'numeric';
+        chip.textContent = due.toLocaleDateString('en-GB', opts);
         chips.appendChild(chip);
-      });
+      }
+
       el.appendChild(chips);
     }
 
