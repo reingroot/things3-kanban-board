@@ -457,7 +457,9 @@
   let dragEl = null;
   let dragSourceCol = null;
 
-  let selectedProject = null;  // null = All, 'inbox', 'other', or project UUID
+  let selectedProject = localStorage.getItem('selectedProject') || null;  // null = All, 'inbox', 'other', or project UUID
+  if (selectedProject === '') selectedProject = null;
+  function setSelectedProject(v) { selectedProject = v; localStorage.setItem('selectedProject', v ?? ''); }
   let currentIndex = null;
 
   let assignOpenId = null;
@@ -648,7 +650,7 @@
     const allBtn = document.createElement('div');
     allBtn.className = 'sidebar-all' + (selectedProject === null ? ' active' : '');
     allBtn.textContent = 'All';
-    allBtn.addEventListener('click', () => { selectedProject = null; renderAll(); });
+    allBtn.addEventListener('click', () => { setSelectedProject(null); renderAll(); });
     nav.appendChild(allBtn);
 
     for (const item of index.sidebar) {
@@ -677,7 +679,7 @@
     const row = document.createElement('div');
     row.className = 'sidebar-item' + (selectedProject === id ? ' active' : '');
     row.textContent = label;
-    row.addEventListener('click', () => { selectedProject = id; renderAll(); });
+    row.addEventListener('click', () => { setSelectedProject(id); renderAll(); });
     return row;
   }
 
@@ -689,7 +691,7 @@
     const row = document.createElement('div');
     row.className = 'sidebar-item' + (selectedProject === project.uuid ? ' active' : '');
     row.textContent = project.title;
-    row.addEventListener('click', () => { selectedProject = project.uuid; renderAll(); });
+    row.addEventListener('click', () => { setSelectedProject(project.uuid); renderAll(); });
     wrap.appendChild(row);
 
     // Assignment panel
