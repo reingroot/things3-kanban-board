@@ -1,37 +1,25 @@
 # TODOS
 
-## Drag-and-Drop Write Path
+## Completed
 
-**What:** Verify that dragging a card to a new column actually updates Things 3.
+### Drag-and-Drop Write Path
 
-**Why:** The `things:///update?id=<uuid>&when=<col>` URL is correctly constructed (uuid fix confirmed), but it requires `window.location.href` navigation which can't be tested in a headless browser. Needs manual test in a real browser with Things 3 running.
+**Completed:** 2026-05-26
 
-**How to verify:** Open http://localhost:8080, drag a Today task to Someday. Within 2 seconds, open Things 3 and confirm the task moved to Someday. Drag it back.
-
-**Blocked by:** Needs real browser + Things 3 running.
+Writes now go via `PUT /todos/{id}` through `server.py`. The proxy authenticates requests using the token from `~/.config/things-api/config` and forwards to things-api. Verified working end-to-end.
 
 ---
 
-## Empty-Title Todos Show as Blank Cards
+### Empty-Title Todos Show as Blank Cards
 
-**What:** Todos with empty `title` in Things 3 render as blank card rectangles.
+**Completed:** 2026-05-26
 
-**Why:** 2 todos in the "Personal AI" project have `title: ""` in the API response. The board renders them faithfully — blank cards. Found during /qa on 2026-05-26.
-
-**How to fix:** In `makeCard()`, add a fallback: `title.textContent = task.title || '(untitled)'`.
-
-**Severity:** Low / cosmetic.
+`makeCard()` returns a `.card-separator` div for empty-title todos — a horizontal line used to visually group inbox items.
 
 ---
 
-## things-api CORS Configuration
+### things-api CORS Configuration
 
-**What:** Determine whether things-api ships with CORS enabled by default, and document the exact flag or workaround.
+**Completed:** 2026-05-26
 
-**Why:** The design prescribes `python -m http.server 8080` as the CORS workaround (serving from `http://localhost:8080` avoids cross-origin issues). But if things-api does support CORS natively (e.g., `--cors` flag), the startup process simplifies to just running things-api and opening index.html directly.
-
-**Current state:** CORS support is not mentioned in the things-api documentation found during /plan-eng-review. The workaround (`python -m http.server`) is documented and works. The native flag, if it exists, is undocumented.
-
-**How to verify:** Run `things-api --help` and look for a `--cors` flag. If it exists, test with `curl -I -H "Origin: http://localhost:8080" http://localhost:5225/today` and check for `Access-Control-Allow-Origin` in the response.
-
-**Blocked by:** Having things-api installed.
+`server.py` is the solution: it serves the board on port 8080 and proxies all API calls (including auth headers) to things-api on port 5225. No browser CORS issues. `python3 -m http.server` is no longer used.
