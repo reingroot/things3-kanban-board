@@ -539,6 +539,7 @@
   </div>
 </div>
 
+<script src="lib.js"></script>
 <script>
   const API = '';  // same origin — server.py proxies to things-api
   const POLL_MS = 30_000;
@@ -638,12 +639,9 @@
       const bucket = byCol[col];
       for (const t of colData[col]) {
         if (t.type !== 'to-do') continue;
-        if (logbookUuids.has(t.uuid)) continue;
-        if (col !== 'today' && todayUuids.has(t.uuid)) continue;
-        // things-api bug: logged recurring instances appear in /today with wrong
-        // start type and no modification history — filter them out
-        // but keep tasks that have a start_date (intentionally scheduled Someday tasks)
-        if (col === 'today' && t.start === 'Someday' && t.modified === null && !t.start_date) continue;
+        if (isLogbookContamination(t, logbookUuids)) continue;
+        if (isDuplicatedInToday(t, col, todayUuids)) continue;
+        if (isGhostRecurring(t, col)) continue;
 
         if (!t.heading && !t.project && !t.area) {
           bucket.inbox.push(t);
