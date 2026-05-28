@@ -1582,7 +1582,10 @@
   }
 
   function setupColumn(colEl) {
+    const isInbox = colEl.dataset.col === 'inbox';
+
     colEl.addEventListener('dragover', e => {
+      if (isInbox) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       colEl.classList.add('drag-over');
@@ -1593,6 +1596,7 @@
     });
 
     colEl.addEventListener('drop', e => {
+      if (isInbox) return;
       e.preventDefault();
       colEl.classList.remove('drag-over');
 
@@ -1615,15 +1619,13 @@
       lastDropTime = Date.now();
       dragActive = false;
 
-      if (targetCol !== 'inbox') {
-        fetch(`/todos/${encodeURIComponent(taskId)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ when: targetCol })
-        }).then(r => {
-          if (!r.ok) r.text().then(t => console.error('Update failed:', r.status, t));
-        }).catch(e => console.error('Update failed:', e));
-      }
+      fetch(`/todos/${encodeURIComponent(taskId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ when: targetCol })
+      }).then(r => {
+        if (!r.ok) r.text().then(t => console.error('Update failed:', r.status, t));
+      }).catch(e => console.error('Update failed:', e));
     });
   }
 
