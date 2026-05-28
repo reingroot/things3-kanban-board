@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Depth Proto A — Subtle (4px)</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #1c1c1e; color: #f2f2f7;
+    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+  header {
+    padding: 14px 20px 12px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #2c2c2e; flex-shrink: 0;
+  }
+  header h1 { font-size: 17px; font-weight: 600; color: #f2f2f7; letter-spacing: -0.2px; }
+  .proto-badge {
+    margin-left: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.4px;
+    color: #636366; background: #2c2c2e; padding: 3px 10px; border-radius: 20px;
+    border: 1px solid #3a3a3c;
+  }
+
+  .board { display: flex; flex: 1; overflow: hidden; align-items: stretch; }
+
+  /* ── Inbox section — sits slightly behind the main panel ── */
+  .inbox-section {
+    flex-shrink: 0;
+    width: 200px;
+    position: relative;
+    z-index: 1;
+    transform: translateY(4px);   /* shift down 4px */
+    margin-right: -2px;           /* slight overlap under main panel */
+  }
+
+  /* ── Main columns section — sits on top, casts shadow left ── */
+  .main-section {
+    flex: 1;
+    display: flex;
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+    box-shadow: -8px 0 14px rgba(0, 0, 0, 0.28);
+  }
+
+  .column {
+    flex: 1; display: flex; flex-direction: column;
+    border-right: 1px solid #2c2c2e; overflow: hidden;
+  }
+  .column:last-child { border-right: none; }
+
+  .col-inbox {
+    flex: 1;
+    background: #141416;
+    border-right: 1px solid #2e2e30;
+  }
+
+  .column-header {
+    padding: 16px 14px 12px; display: flex; align-items: center; gap: 8px;
+    flex-shrink: 0; border-bottom: 1px solid #2c2c2e;
+  }
+  .col-inbox .column-header { border-bottom-color: #2a2a2c; }
+
+  .column-indicator {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+  .col-inbox     .column-indicator { background: #8e8e93; }
+  .col-projects  .column-indicator { background: #30d158; }
+  .col-someday   .column-indicator { background: #636366; }
+  .col-next      .column-indicator { background: #0a84ff; }
+  .col-today     .column-indicator { background: #ff9f0a; }
+
+  .column-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.6px;
+    text-transform: uppercase; color: #8e8e93;
+  }
+  .col-inbox .column-title { color: #55555a; font-style: italic; font-weight: 600; }
+
+  .column-count {
+    font-size: 11px; color: #48484a; margin-left: auto;
+    font-weight: 600; font-variant-numeric: tabular-nums;
+  }
+  .col-inbox .column-count { color: #3a3a3c; }
+
+  .inbox-unprocessed-badge {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.4px;
+    text-transform: uppercase; color: #48484a;
+    border: 1px solid #3a3a3c; border-radius: 3px; padding: 1px 5px; flex-shrink: 0;
+  }
+
+  .inbox-nudge {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; color: #3a3a3c; letter-spacing: 0.2px;
+    padding: 8px 14px 6px; flex-shrink: 0; border-bottom: 1px solid #232325;
+  }
+
+  .cards {
+    flex: 1; overflow-y: auto; padding: 10px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .cards::-webkit-scrollbar { width: 4px; }
+  .cards::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+
+  /* Inbox stripe texture + dashed cards */
+  .col-inbox .cards {
+    background-image: repeating-linear-gradient(
+      135deg, transparent, transparent 18px,
+      rgba(255,255,255,0.018) 18px, rgba(255,255,255,0.018) 19px
+    );
+  }
+
+  .card {
+    background: #2c2c2e; border-radius: 10px; padding: 10px 12px;
+    cursor: grab; border: 1px solid #3a3a3c;
+    transition: border-color 0.15s; user-select: none;
+  }
+  .card:hover { border-color: #48484a; }
+
+  .col-inbox .card {
+    background: #272729; border-style: dashed; border-color: #363638;
+  }
+  .col-inbox .card:hover { border-color: #48484a; border-style: solid; }
+
+  .card-title { font-size: 13px; font-weight: 500; color: #f2f2f7; line-height: 1.4; }
+  .card-title.has-chips { margin-bottom: 6px; }
+  .col-inbox .card-title { color: #aeaeb2; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip {
+    font-size: 10px; font-weight: 600; padding: 2px 6px;
+    border-radius: 4px; background: #3a3a3c; color: #8e8e93; letter-spacing: 0.2px;
+  }
+  .chip-project { background: #1c3a5c; color: #4da3e8; }
+  .chip-green   { background: #0d2e1a; color: #30d158; }
+
+  /* Project section dividers inside Projects column */
+  .project-heading {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; color: #48484a;
+    padding: 8px 2px 4px; flex-shrink: 0;
+  }
+  .project-heading:first-child { padding-top: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Things 3 Kanban</h1>
+  <span class="proto-badge">Depth A — Subtle (4px shift, soft shadow)</span>
+</header>
+
+<div class="board">
+
+  <!-- INBOX — behind the main panel -->
+  <div class="inbox-section">
+    <div class="column col-inbox">
+      <div class="column-header">
+        <div class="column-indicator"></div>
+        <span class="column-title">Inbox</span>
+        <span class="inbox-unprocessed-badge">unprocessed</span>
+        <span class="column-count">4</span>
+      </div>
+      <div class="inbox-nudge">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+          <path d="M10 6H2M5 3L2 6l3 3" stroke="#3a3a3c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        drop on a project or heading
+      </div>
+      <div class="cards">
+        <div class="card"><div class="card-title">Follow up with Marc about Q3</div></div>
+        <div class="card">
+          <div class="card-title has-chips">Book dentist appointment</div>
+          <div class="chips"><span class="chip chip-green">Health</span></div>
+        </div>
+        <div class="card"><div class="card-title">Research standing desk options</div></div>
+        <div class="card">
+          <div class="card-title has-chips">Review new onboarding flow</div>
+          <div class="chips"><span class="chip chip-project">Product</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN SECTION — in front, casts shadow on inbox -->
+  <div class="main-section">
+
+    <!-- PROJECTS -->
+    <div class="column col-projects">
+      <div class="column-header">
+        <div class="column-indicator"></div>
+        <span class="column-title">Projects</span>
+        <span class="column-count">5</span>
+      </div>
+      <div class="cards">
+        <div class="project-heading">Engineering</div>
+        <div class="card">
+          <div class="card-title has-chips">Refactor auth module</div>
+          <div class="chips"><span class="chip chip-project">Engineering</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title has-chips">Update API docs</div>
+          <div class="chips"><span class="chip chip-project">Engineering</span></div>
+        </div>
+        <div class="project-heading">Product</div>
+        <div class="card">
+          <div class="card-title has-chips">Redesign settings page</div>
+          <div class="chips"><span class="chip chip-project">Product</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOMEDAY -->
+    <div class="column col-someday">
+      <div class="column-header">
+        <div class="column-indicator"></div>
+        <span class="column-title">Someday</span>
+        <span class="column-count">3</span>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="card-title">Learn Rust basics</div></div>
+        <div class="card">
+          <div class="card-title has-chips">Podcast backlog</div>
+          <div class="chips"><span class="chip">Personal</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEXT -->
+    <div class="column col-next">
+      <div class="column-header">
+        <div class="column-indicator"></div>
+        <span class="column-title">Next</span>
+        <span class="column-count">3</span>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="card-title">Prepare slides for Friday demo</div></div>
+        <div class="card">
+          <div class="card-title has-chips">Update API docs</div>
+          <div class="chips"><span class="chip chip-project">Engineering</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TODAY -->
+    <div class="column col-today">
+      <div class="column-header">
+        <div class="column-indicator"></div>
+        <span class="column-title">Today</span>
+        <span class="column-count">2</span>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="card-title">Weekly review</div></div>
+        <div class="card">
+          <div class="card-title has-chips">Ship v2.1 hotfix</div>
+          <div class="chips"><span class="chip chip-project">Engineering</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-section -->
+</div><!-- /board -->
+</body>
+</html>

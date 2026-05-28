@@ -215,6 +215,29 @@
       display: flex;
       flex: 1;
       overflow: hidden;
+      align-items: stretch;
+    }
+
+    /* Inbox sits slightly behind and below the main panel */
+    .inbox-section {
+      flex-shrink: 0;
+      width: 220px;
+      position: relative;
+      z-index: 1;
+      transform: translateY(12px);
+      margin-right: -6px;
+      filter: brightness(0.88);
+    }
+
+    /* Main columns panel sits on top, casts shadow left onto inbox */
+    .main-section {
+      flex: 1;
+      display: flex;
+      position: relative;
+      z-index: 2;
+      overflow: hidden;
+      box-shadow: -16px 0 32px rgba(0, 0, 0, 0.56), -1px 0 0 rgba(255, 255, 255, 0.04);
+      border-left: 1px solid #222224;
     }
 
     .column {
@@ -263,10 +286,11 @@
       flex-shrink: 0;
     }
 
-    .col-inbox   .column-indicator { background: #8e8e93; }
-    .col-someday .column-indicator { background: #636366; }
-    .col-next    .column-indicator { background: #0a84ff; }
-    .col-today   .column-indicator { background: #ff9f0a; }
+    .col-inbox    .column-indicator { background: #8e8e93; }
+    .col-projects .column-indicator { background: #30d158; }
+    .col-someday  .column-indicator { background: #636366; }
+    .col-next     .column-indicator { background: #0a84ff; }
+    .col-today    .column-indicator { background: #ff9f0a; }
 
     .inbox-unprocessed-badge {
       font-size: 9px;
@@ -695,47 +719,60 @@
   <nav class="sidebar" id="sidebar"></nav>
 
   <div class="board">
-    <div class="column col-inbox" id="col-inbox" data-col="inbox">
-      <div class="column-header">
-        <div class="column-indicator"></div>
-        <span class="column-title">Inbox</span>
-        <span class="inbox-unprocessed-badge">unprocessed</span>
-        <span class="column-count" id="count-inbox">—</span>
+    <div class="inbox-section">
+      <div class="column col-inbox" id="col-inbox" data-col="inbox">
+        <div class="column-header">
+          <div class="column-indicator"></div>
+          <span class="column-title">Inbox</span>
+          <span class="inbox-unprocessed-badge">unprocessed</span>
+          <span class="column-count" id="count-inbox">—</span>
+        </div>
+        <div class="inbox-nudge">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+            <path d="M10 6H2M5 3L2 6l3 3" stroke="#3a3a3c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          drop on a project · heading in the sidebar
+        </div>
+        <div class="cards" id="cards-inbox"></div>
       </div>
-      <div class="inbox-nudge">
-        <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-          <path d="M10 6H2M5 3L2 6l3 3" stroke="#3a3a3c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        drop on a project · heading in the sidebar
-      </div>
-      <div class="cards" id="cards-inbox"></div>
     </div>
 
-    <div class="column col-someday" id="col-someday" data-col="someday">
-      <div class="column-header">
-        <div class="column-indicator"></div>
-        <span class="column-title">Someday</span>
-        <span class="column-count" id="count-someday">—</span>
+    <div class="main-section">
+      <div class="column col-projects" id="col-projects" data-col="projects">
+        <div class="column-header">
+          <div class="column-indicator"></div>
+          <span class="column-title">Projects</span>
+          <span class="column-count" id="count-projects">—</span>
+        </div>
+        <div class="cards" id="cards-projects"></div>
       </div>
-      <div class="cards" id="cards-someday"></div>
-    </div>
 
-    <div class="column col-next" id="col-next" data-col="anytime">
-      <div class="column-header">
-        <div class="column-indicator"></div>
-        <span class="column-title">Next</span>
-        <span class="column-count" id="count-anytime">—</span>
+      <div class="column col-someday" id="col-someday" data-col="someday">
+        <div class="column-header">
+          <div class="column-indicator"></div>
+          <span class="column-title">Someday</span>
+          <span class="column-count" id="count-someday">—</span>
+        </div>
+        <div class="cards" id="cards-someday"></div>
       </div>
-      <div class="cards" id="cards-anytime"></div>
-    </div>
 
-    <div class="column col-today" id="col-today" data-col="today">
-      <div class="column-header">
-        <div class="column-indicator"></div>
-        <span class="column-title">Today</span>
-        <span class="column-count" id="count-today">—</span>
+      <div class="column col-next" id="col-next" data-col="anytime">
+        <div class="column-header">
+          <div class="column-indicator"></div>
+          <span class="column-title">Next</span>
+          <span class="column-count" id="count-anytime">—</span>
+        </div>
+        <div class="cards" id="cards-anytime"></div>
       </div>
-      <div class="cards" id="cards-today"></div>
+
+      <div class="column col-today" id="col-today" data-col="today">
+        <div class="column-header">
+          <div class="column-indicator"></div>
+          <span class="column-title">Today</span>
+          <span class="column-count" id="count-today">—</span>
+        </div>
+        <div class="cards" id="cards-today"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1247,6 +1284,58 @@
     if (count) count.textContent = totalCards || '—';
   }
 
+  function renderProjects(index) {
+    const container = document.getElementById('cards-projects');
+    container.innerHTML = '';
+    let totalCards = 0;
+
+    // Aggregate project-affiliated tasks from someday + anytime, keyed by project uuid
+    // Each entry stores {task, col} so drag source col is correct
+    const projectAgg = new Map();
+    for (const col of ['someday', 'anytime']) {
+      const bucket = index.byCol[col];
+      for (const [projectUuid, group] of bucket.projects) {
+        if (!projectAgg.has(projectUuid)) {
+          projectAgg.set(projectUuid, { project: group.project, entries: [] });
+        }
+        const todos = [
+          ...group.noHeading,
+          ...[...group.headings.values()].flatMap(h => h.todos)
+        ];
+        todos.forEach(t => projectAgg.get(projectUuid).entries.push({ task: t, col }));
+      }
+    }
+
+    // Render sidebar-ordered projects
+    const renderedProjects = new Set();
+    for (const sItem of index.sidebar) {
+      if (sItem.type !== 'area') continue;
+      for (const project of sItem.projects) {
+        const group = projectAgg.get(project.uuid);
+        if (!group || group.entries.length === 0) continue;
+        container.appendChild(makeGroupHeader(project.title));
+        group.entries.forEach(({ task, col }) => { container.appendChild(makeCard(task, col)); totalCards++; });
+        renderedProjects.add(project.uuid);
+      }
+    }
+    // Projects not in sidebar order
+    for (const [uuid, group] of projectAgg) {
+      if (renderedProjects.has(uuid) || group.entries.length === 0) continue;
+      container.appendChild(makeGroupHeader(group.project.title));
+      group.entries.forEach(({ task, col }) => { container.appendChild(makeCard(task, col)); totalCards++; });
+    }
+
+    if (totalCards === 0) {
+      const msg = document.createElement('div');
+      msg.className = 'empty-state';
+      msg.textContent = 'No project tasks';
+      container.appendChild(msg);
+    }
+
+    const count = document.getElementById('count-projects');
+    if (count) count.textContent = totalCards || '—';
+  }
+
   function makeGroupHeader(title) {
     const el = document.createElement('div');
     el.className = 'group-header';
@@ -1259,6 +1348,7 @@
     if (!currentIndex) return;
     renderSidebar(currentIndex);
     COLS.forEach(col => renderCol(col, currentIndex));
+    renderProjects(currentIndex);
     updateFocusBanner();
     if (focusModeActive) refreshFocusSwimlanes();
   }
@@ -1347,6 +1437,7 @@
   async function load(initial = false) {
     if (initial) {
       COLS.forEach(c => showLoading(c));
+      showLoading('projects');
       await fetchLogbook();
     }
     try {
@@ -1364,6 +1455,7 @@
   function reload() {
     setError(false);
     COLS.forEach(c => showLoading(c));
+    showLoading('projects');
     load();
   }
 
@@ -1635,7 +1727,7 @@
   }
 
   function setupColumn(colEl) {
-    const isInbox = colEl.dataset.col === 'inbox';
+    const isInbox = colEl.dataset.col === 'inbox' || colEl.dataset.col === 'projects';
 
     colEl.addEventListener('dragover', e => {
       if (isInbox) { e.preventDefault(); e.dataTransfer.dropEffect = 'none'; return; }
