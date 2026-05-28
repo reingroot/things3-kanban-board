@@ -465,6 +465,154 @@
       font-family: inherit; font-size: 12px; display: flex; align-items: center; gap: 5px;
     }
     #briefing-open-btn:hover { background: #2c2c2e; color: #aeaeb2; }
+
+    /* ── View tabs ──────────────────────────────────────────────────── */
+    #view-tabs {
+      display: flex;
+      gap: 2px;
+      background: #2c2c2e;
+      border-radius: 8px;
+      padding: 2px;
+      margin-left: 12px;
+    }
+    .view-tab {
+      padding: 4px 14px;
+      border-radius: 6px;
+      border: none;
+      background: none;
+      color: #8e8e93;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .view-tab.active { background: #3a3a3c; color: #f2f2f7; font-weight: 600; }
+    .view-tab:hover:not(.active) { color: #aeaeb2; }
+
+    /* ── Focus banner ───────────────────────────────────────────────── */
+    #focus-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 20px;
+      background: #1a2e1a;
+      border-bottom: 1px solid #30d15840;
+      color: #30d158;
+      font-size: 13px;
+    }
+    #focus-banner.visible { display: flex; }
+    #focus-banner-change {
+      background: none;
+      border: 1px solid #30d15840;
+      color: #30d158;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      margin-left: auto;
+    }
+    #focus-banner-change:hover { background: #30d15820; }
+
+    /* ── Focus container ────────────────────────────────────────────── */
+    #focus-container {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    #focus-container.visible { display: flex; }
+
+    /* ── Focus picker ───────────────────────────────────────────────── */
+    .focus-picker {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 24px;
+      padding: 40px 20px;
+    }
+    .focus-picker h2 { color: #f2f2f7; font-size: 18px; font-weight: 600; margin: 0; }
+    .focus-picker-slots { display: flex; gap: 20px; }
+    .focus-picker-slot { display: flex; flex-direction: column; gap: 8px; width: 280px; }
+    .focus-picker-slot label {
+      color: #8e8e93; font-size: 12px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .focus-picker-search {
+      background: #2c2c2e; border: 1px solid #3a3a3c; border-radius: 8px;
+      color: #f2f2f7; font-family: inherit; font-size: 14px;
+      padding: 8px 12px; width: 100%; box-sizing: border-box;
+    }
+    .focus-picker-search::placeholder { color: #636366; }
+    .focus-picker-search:focus { outline: none; border-color: #30d158; }
+    .focus-picker-list {
+      max-height: 240px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .focus-picker-option {
+      padding: 8px 12px; border-radius: 6px; color: #aeaeb2;
+      font-size: 13px; cursor: pointer; transition: background 0.1s, color 0.1s;
+    }
+    .focus-picker-option:hover { background: #2c2c2e; color: #f2f2f7; }
+    .focus-picker-option.selected { background: #1a2e1a; color: #30d158; }
+    .focus-picker-start {
+      background: #30d158; border: none; border-radius: 8px;
+      color: #000; font-family: inherit; font-size: 14px; font-weight: 600;
+      padding: 10px 28px; cursor: pointer; transition: opacity 0.15s;
+    }
+    .focus-picker-start:disabled { opacity: 0.35; cursor: default; }
+    .focus-picker-start:not(:disabled):hover { opacity: 0.85; }
+
+    /* ── Focus swimlanes ────────────────────────────────────────────── */
+    .focus-swimlanes {
+      display: flex; flex: 1; gap: 16px;
+      padding: 16px 20px; overflow: hidden;
+    }
+    .focus-swimlane {
+      flex: 1; display: flex; flex-direction: column;
+      min-width: 0; background: #1c1c1e; border-radius: 10px; overflow: hidden;
+    }
+    .focus-swimlane-header {
+      background: #2c2c2e; border-left: 3px solid #30d158;
+      padding: 10px 14px; display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    }
+    .focus-swimlane-name { color: #f2f2f7; font-size: 15px; font-weight: 600; }
+    .focus-swimlane-count { color: #30d158; font-size: 12px; font-weight: 500; }
+    .focus-cols { display: flex; flex: 1; overflow: hidden; }
+    .focus-col {
+      flex: 1; display: flex; flex-direction: column;
+      min-width: 0; border-right: 1px solid #2c2c2e;
+    }
+    .focus-col:last-child { border-right: none; }
+    .focus-col-title {
+      color: #636366; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 8px 10px 4px; flex-shrink: 0;
+    }
+    .focus-col-cards {
+      flex: 1; overflow-y: auto; padding: 4px 8px 8px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .focus-col-cards.drag-over { background: rgba(44,44,46,0.5); }
+    .focus-col-empty {
+      min-height: 120px; border: 1px dashed #3a3a3c; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #636366; font-size: 12px;
+    }
+
+    /* ── Narrow notice ──────────────────────────────────────────────── */
+    .focus-narrow-notice {
+      display: none; padding: 20px; color: #636366;
+      font-size: 13px; text-align: center;
+    }
+    @media (max-width: 1279px) {
+      .focus-narrow-notice { display: block; }
+      .focus-swimlanes { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -473,6 +621,10 @@
   <div class="dot" id="status-dot"></div>
   <h1>Things 3</h1>
   <button id="briefing-open-btn" onclick="showBriefing()">GTD Briefing</button>
+  <div id="view-tabs">
+    <button class="view-tab active" onclick="setFocusMode(false)">Board</button>
+    <button class="view-tab" onclick="setFocusMode(true)">Focus</button>
+  </div>
 </header>
 
 <div id="briefing-overlay">
@@ -495,6 +647,11 @@
 <div id="banner">
   <span>Cannot reach things-api — is it running on localhost:5225?</span>
   <button onclick="reload()">Retry</button>
+</div>
+
+<div id="focus-banner">
+  <span id="focus-banner-text"></span>
+  <button id="focus-banner-change" onclick="showFocusPicker()">Change</button>
 </div>
 
 <div class="content">
@@ -539,6 +696,12 @@
   </div>
 </div>
 
+<div id="focus-container">
+  <div class="focus-narrow-notice">Focus mode works best at 1280px or wider.</div>
+  <div class="focus-picker" id="focus-picker"></div>
+  <div class="focus-swimlanes" id="focus-swimlanes"></div>
+</div>
+
 <script src="lib.js"></script>
 <script>
   const API = '';  // same origin — server.py proxies to things-api
@@ -564,6 +727,10 @@
   let assignCloseTimer = null;
   let lastColData = null;
   let logbookFull = [];
+
+  let focusModeActive = false;
+  let focusState = JSON.parse(localStorage.getItem('focusState') || 'null');
+  let focusPickerSelected = [null, null];
 
   // ── Fetch ────────────────────────────────────────────────────────────────
 
@@ -1031,6 +1198,8 @@
     if (!currentIndex) return;
     renderSidebar(currentIndex);
     COLS.forEach(col => renderCol(col, currentIndex));
+    updateFocusBanner();
+    if (focusModeActive) refreshFocusSwimlanes();
   }
 
   // ── Card ──────────────────────────────────────────────────────────────────
@@ -1383,7 +1552,7 @@
       dragEl.classList.remove('dragging');
       dragEl = null;
     }
-    document.querySelectorAll('.column').forEach(c => c.classList.remove('drag-over'));
+    document.querySelectorAll('.column, .focus-col-cards').forEach(c => c.classList.remove('drag-over'));
     clearTimeout(assignCloseTimer);
     assignCloseTimer = setTimeout(closeAssignPanel, 150);
   }
@@ -1440,9 +1609,313 @@
     if (container && count) count.textContent = container.querySelectorAll('.card').length;
   }
 
+  // ── Focus Mode ────────────────────────────────────────────────────────────
+
+  function setFocusMode(active) {
+    focusModeActive = active;
+    document.querySelectorAll('.view-tab').forEach((tab, i) => {
+      tab.classList.toggle('active', i === (active ? 1 : 0));
+    });
+    const content = document.querySelector('.content');
+    const focusEl = document.getElementById('focus-container');
+    if (active) {
+      content.style.display = 'none';
+      focusEl.classList.add('visible');
+      // CSS transitions don't fire on display:none→flex; double-rAF triggers the opacity fade
+      focusEl.style.opacity = '0';
+      requestAnimationFrame(() => requestAnimationFrame(() => { focusEl.style.opacity = '1'; }));
+      if (focusState && !focusIsStale(focusState)) {
+        showFocusSwimlanes();
+      } else {
+        showFocusPicker();
+      }
+    } else {
+      focusEl.classList.remove('visible');
+      content.style.display = '';
+    }
+  }
+
+  function showFocusPicker() {
+    document.getElementById('focus-picker').style.display = '';
+    document.getElementById('focus-swimlanes').style.display = 'none';
+    renderFocusPicker();
+  }
+
+  function showFocusSwimlanes() {
+    document.getElementById('focus-picker').style.display = 'none';
+    document.getElementById('focus-swimlanes').style.display = '';
+    renderFocusSwimlanes();
+  }
+
+  function refreshFocusSwimlanes() {
+    const swimlanesEl = document.getElementById('focus-swimlanes');
+    if (!swimlanesEl || swimlanesEl.style.display === 'none') return;
+    renderFocusSwimlanes();
+  }
+
+  function updateFocusBanner() {
+    const banner = document.getElementById('focus-banner');
+    const text = document.getElementById('focus-banner-text');
+    if (!focusState || focusIsStale(focusState)) {
+      banner.classList.remove('visible');
+      return;
+    }
+    const names = focusState.projects.map(uuid => {
+      if (!currentIndex) return uuid;
+      for (const col of ['someday', 'anytime', 'today']) {
+        const entry = currentIndex.byCol[col].projects.get(uuid);
+        if (entry) return entry.project.title;
+      }
+      return uuid;
+    });
+    text.textContent = `Weekly focus: ${names.join(' & ')}`;
+    banner.classList.add('visible');
+  }
+
+  function checkFocusBannerOnLoad() {
+    if (focusState && focusIsStale(focusState)) {
+      focusState = null;
+      localStorage.removeItem('focusState');
+    }
+  }
+
+  function renderFocusPicker() {
+    if (!currentIndex) return;
+
+    const projectMap = new Map();
+    for (const col of ['someday', 'anytime', 'today']) {
+      for (const [uuid, entry] of currentIndex.byCol[col].projects) {
+        if (!projectMap.has(uuid)) projectMap.set(uuid, { project: entry.project, count: 0 });
+        const e = projectMap.get(uuid);
+        e.count += entry.noHeading.length;
+        for (const h of entry.headings.values()) e.count += h.todos.length;
+      }
+    }
+    const allProjects = [...projectMap.values()].sort((a, b) =>
+      a.project.title.localeCompare(b.project.title)
+    );
+
+    if (focusState && !focusIsStale(focusState)) {
+      focusPickerSelected = [focusState.projects[0] || null, focusState.projects[1] || null];
+    } else {
+      focusPickerSelected = [null, null];
+    }
+
+    const picker = document.getElementById('focus-picker');
+    picker.innerHTML = '';
+
+    const h2 = document.createElement('h2');
+    h2.textContent = 'Choose your focus projects for this week';
+    picker.appendChild(h2);
+
+    const slots = document.createElement('div');
+    slots.className = 'focus-picker-slots';
+
+    const startBtn = document.createElement('button');
+    startBtn.className = 'focus-picker-start';
+    startBtn.textContent = 'Start focus week';
+    startBtn.disabled = !focusPickerSelected[0] && !focusPickerSelected[1];
+    startBtn.onclick = () => {
+      const selected = focusPickerSelected.filter(Boolean);
+      if (!selected.length) return;
+      focusState = { weekOf: getWeekMonday(new Date()), projects: selected };
+      localStorage.setItem('focusState', JSON.stringify(focusState));
+      updateFocusBanner();
+      showFocusSwimlanes();
+    };
+
+    for (let slot = 0; slot < 2; slot++) {
+      const slotEl = document.createElement('div');
+      slotEl.className = 'focus-picker-slot';
+
+      const label = document.createElement('label');
+      label.textContent = slot === 0 ? 'Project A' : 'Project B (optional)';
+      slotEl.appendChild(label);
+
+      const search = document.createElement('input');
+      search.type = 'text';
+      search.className = 'focus-picker-search';
+      search.placeholder = 'Search projects…';
+      slotEl.appendChild(search);
+
+      const list = document.createElement('div');
+      list.className = 'focus-picker-list';
+
+      const renderOptions = (filter) => {
+        const f = filter.toLowerCase();
+        list.innerHTML = '';
+        for (const { project } of allProjects) {
+          if (f && !project.title.toLowerCase().includes(f)) continue;
+          const opt = document.createElement('div');
+          opt.className = 'focus-picker-option' + (focusPickerSelected[slot] === project.uuid ? ' selected' : '');
+          opt.textContent = project.title;
+          opt.onclick = () => {
+            focusPickerSelected[slot] = project.uuid;
+            renderOptions(search.value);
+            startBtn.disabled = !focusPickerSelected[0] && !focusPickerSelected[1];
+          };
+          list.appendChild(opt);
+        }
+      };
+
+      search.addEventListener('input', () => renderOptions(search.value));
+      renderOptions('');
+      slotEl.appendChild(list);
+      slots.appendChild(slotEl);
+    }
+
+    picker.appendChild(slots);
+    picker.appendChild(startBtn);
+  }
+
+  function renderFocusSwimlanes() {
+    if (!currentIndex || !focusState) return;
+
+    const container = document.getElementById('focus-swimlanes');
+    container.innerHTML = '';
+
+    for (const uuid of focusState.projects) {
+      let project = null;
+      for (const col of ['someday', 'anytime', 'today']) {
+        const entry = currentIndex.byCol[col].projects.get(uuid);
+        if (entry) { project = entry.project; break; }
+      }
+      if (!project) continue;
+      const lane = makeFocusSwimlane(project);
+      container.appendChild(lane);
+      lane.querySelectorAll('.focus-col-cards').forEach(setupFocusColCards);
+    }
+
+    updateFocusBanner();
+  }
+
+  function makeFocusSwimlane(project) {
+    const lane = document.createElement('div');
+    lane.className = 'focus-swimlane';
+    lane.dataset.projectId = project.uuid;
+
+    let totalCount = 0;
+    for (const col of ['someday', 'anytime', 'today']) {
+      const entry = currentIndex.byCol[col].projects.get(project.uuid);
+      if (entry) {
+        totalCount += entry.noHeading.length;
+        for (const h of entry.headings.values()) totalCount += h.todos.length;
+      }
+    }
+
+    const hdr = document.createElement('div');
+    hdr.className = 'focus-swimlane-header';
+    const nameEl = document.createElement('span');
+    nameEl.className = 'focus-swimlane-name';
+    nameEl.textContent = project.title;
+    const countEl = document.createElement('span');
+    countEl.className = 'focus-swimlane-count';
+    countEl.textContent = String(totalCount);
+    hdr.appendChild(nameEl);
+    hdr.appendChild(countEl);
+    lane.appendChild(hdr);
+
+    const cols = document.createElement('div');
+    cols.className = 'focus-cols';
+
+    for (const { col, label } of [
+      { col: 'someday', label: 'Someday' },
+      { col: 'anytime', label: 'Next'    },
+      { col: 'today',   label: 'Today'   }
+    ]) {
+      const focusCol = document.createElement('div');
+      focusCol.className = 'focus-col';
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'focus-col-title';
+      titleEl.textContent = label;
+      focusCol.appendChild(titleEl);
+
+      const cardsEl = document.createElement('div');
+      cardsEl.className = 'focus-col-cards';
+      cardsEl.dataset.col = col;
+      cardsEl.dataset.projectId = project.uuid;
+
+      const entry = currentIndex.byCol[col].projects.get(project.uuid);
+      const tasks = [];
+      if (entry) {
+        tasks.push(...entry.noHeading);
+        for (const h of entry.headings.values()) tasks.push(...h.todos);
+      }
+
+      if (tasks.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'focus-col-empty';
+        empty.textContent = 'No tasks';
+        cardsEl.appendChild(empty);
+      } else {
+        for (const task of tasks) {
+          const card = makeCard(task, col);
+          if (card.dataset) card.dataset.projectId = project.uuid;
+          cardsEl.appendChild(card);
+        }
+      }
+
+      focusCol.appendChild(cardsEl);
+      cols.appendChild(focusCol);
+    }
+
+    lane.appendChild(cols);
+    return lane;
+  }
+
+  function setupFocusColCards(cardsEl) {
+    const projectId = cardsEl.dataset.projectId;
+
+    cardsEl.addEventListener('dragover', e => {
+      if (!dragEl || dragEl.dataset.projectId !== projectId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      cardsEl.classList.add('drag-over');
+    });
+
+    cardsEl.addEventListener('dragleave', e => {
+      if (!cardsEl.contains(e.relatedTarget)) cardsEl.classList.remove('drag-over');
+    });
+
+    cardsEl.addEventListener('drop', e => {
+      e.preventDefault();
+      cardsEl.classList.remove('drag-over');
+
+      if (!dragEl || dragEl.dataset.projectId !== projectId) return;
+
+      const taskId = e.dataTransfer.getData('taskId');
+      const sourceCol = e.dataTransfer.getData('sourceCol');
+      const targetCol = cardsEl.dataset.col;
+
+      if (!taskId || sourceCol === targetCol) { dragActive = false; return; }
+
+      const empty = cardsEl.querySelector('.focus-col-empty');
+      if (empty) empty.remove();
+
+      const card = document.querySelector(`.card[data-id="${taskId}"]`);
+      if (card) {
+        card.dataset.col = targetCol;
+        cardsEl.appendChild(card);
+      }
+
+      lastDropTime = Date.now();
+      dragActive = false;
+
+      fetch(`/todos/${encodeURIComponent(taskId)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ when: targetCol })
+      }).then(r => {
+        if (!r.ok) r.text().then(t => console.error('Update failed:', r.status, t));
+      }).catch(err => console.error('Update failed:', err));
+    });
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────────
 
   document.querySelectorAll('.column').forEach(setupColumn);
+  checkFocusBannerOnLoad();
   load(true);
   setInterval(tick, POLL_MS);
 </script>

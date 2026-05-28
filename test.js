@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { isGhostRecurring, isLogbookContamination, isDuplicatedInToday } = require('./lib.js');
+const { isGhostRecurring, isLogbookContamination, isDuplicatedInToday, getWeekMonday, focusIsStale } = require('./lib.js');
 
 let pass = 0, fail = 0;
 function test(name, fn) {
@@ -56,6 +56,41 @@ test('keeps: today col is never filtered (today owns its tasks)', () => {
 });
 test('keeps: uuid not in todayUuids', () => {
   assert.strictEqual(isDuplicatedInToday({ uuid: 'xyz' }, 'anytime', new Set(['abc'])), false);
+});
+
+// ── getWeekMonday ─────────────────────────────────────────────────────────────
+console.log('\ngetWeekMonday');
+
+test('Monday returns itself', () => {
+  assert.strictEqual(getWeekMonday(new Date(2026, 4, 25)), '2026-05-25');
+});
+test('Wednesday returns Monday of same ISO week', () => {
+  assert.strictEqual(getWeekMonday(new Date(2026, 4, 27)), '2026-05-25');
+});
+test('Sunday returns Monday of same ISO week (not next week)', () => {
+  assert.strictEqual(getWeekMonday(new Date(2026, 4, 31)), '2026-05-25');
+});
+test('Saturday returns Monday of same ISO week', () => {
+  assert.strictEqual(getWeekMonday(new Date(2026, 4, 30)), '2026-05-25');
+});
+
+// ── focusIsStale ──────────────────────────────────────────────────────────────
+console.log('\nfocusIsStale');
+
+test('stale: stored is null', () => {
+  assert.strictEqual(focusIsStale(null), true);
+});
+test('stale: stored has no weekOf field', () => {
+  assert.strictEqual(focusIsStale({}), true);
+});
+test('stale: weekOf is a past week', () => {
+  assert.strictEqual(focusIsStale({ weekOf: '2020-01-06' }), true);
+});
+test('fresh: weekOf matches current week Monday', () => {
+  assert.strictEqual(focusIsStale({ weekOf: getWeekMonday(new Date()) }), false);
+});
+test('fresh: extra fields alongside weekOf do not affect result', () => {
+  assert.strictEqual(focusIsStale({ weekOf: getWeekMonday(new Date()), projects: ['abc'] }), false);
 });
 
 // ── Result ───────────────────────────────────────────────────────────────────
