@@ -591,6 +591,7 @@
       display: flex; flex-direction: column; gap: 6px;
     }
     .focus-col-cards.drag-over { background: rgba(44,44,46,0.5); }
+
     .focus-col-empty {
       min-height: 120px; border: 1px dashed #3a3a3c; border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
@@ -1532,6 +1533,24 @@
     e.dataTransfer.setData('sourceCol', dragSourceCol);
     e.dataTransfer.effectAllowed = 'move';
     setTimeout(() => dragEl && dragEl.classList.add('dragging'), 0);
+    const rect = dragEl.getBoundingClientRect();
+    const ghost = dragEl.cloneNode(true);
+    ghost.classList.remove('dragging');
+    ghost.style.cssText = `width:${rect.width}px;flex-shrink:0;opacity:0.85;padding-left:28px;position:relative;box-sizing:border-box;overflow:hidden;`;
+    const handle = document.createElement('div');
+    handle.style.cssText = `position:absolute;left:0;top:0;bottom:0;width:20px;display:flex;align-items:center;justify-content:center;color:#636366;font-size:11px;background:#2c2c2e;`;
+    handle.textContent = '⠿';
+    ghost.insertBefore(handle, ghost.firstChild);
+    // 20px spacer + offsetX=30 places cursor at handle centre; ghost extends right of cursor
+    const spacer = document.createElement('div');
+    spacer.style.cssText = `width:20px;flex-shrink:0;`;
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'position:fixed;top:-9999px;left:0;display:flex;align-items:flex-start;';
+    wrapper.appendChild(spacer);
+    wrapper.appendChild(ghost);
+    document.body.appendChild(wrapper);
+    e.dataTransfer.setDragImage(wrapper, 30, Math.min(e.offsetY, rect.height / 2));
+    setTimeout(() => wrapper.remove(), 0);
   }
 
   function onDragEnd() {
