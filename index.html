@@ -229,6 +229,7 @@
     .column:last-child { border-right: none; }
 
     .column.drag-over { background: #2c2c2e; }
+    body.is-dragging .col-inbox { opacity: 0.35; pointer-events: none; }
 
     .column-header {
       padding: 16px 16px 12px;
@@ -1544,6 +1545,7 @@
 
   function onDragStart(e) {
     dragActive = true;
+    document.body.classList.add('is-dragging');
     dragEl = e.currentTarget;
     dragSourceCol = dragEl.dataset.col;
     e.dataTransfer.setData('taskId', dragEl.dataset.id);
@@ -1572,6 +1574,7 @@
 
   function onDragEnd() {
     dragActive = false;
+    document.body.classList.remove('is-dragging');
     if (dragEl) {
       dragEl.classList.remove('dragging');
       dragEl = null;
@@ -1585,7 +1588,7 @@
     const isInbox = colEl.dataset.col === 'inbox';
 
     colEl.addEventListener('dragover', e => {
-      if (isInbox) return;
+      if (isInbox) { e.preventDefault(); e.dataTransfer.dropEffect = 'none'; return; }
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       colEl.classList.add('drag-over');
