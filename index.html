@@ -229,7 +229,7 @@
     .column:last-child { border-right: none; }
 
     .column.drag-over { background: #2c2c2e; }
-    body.is-dragging .col-inbox { opacity: 0.35; pointer-events: none; }
+    body.is-dragging-from-other .col-inbox { opacity: 0.35; pointer-events: none; }
 
     .column-header {
       padding: 16px 16px 12px;
@@ -267,6 +267,48 @@
     .col-someday .column-indicator { background: #636366; }
     .col-next    .column-indicator { background: #0a84ff; }
     .col-today   .column-indicator { background: #ff9f0a; }
+
+    .inbox-unprocessed-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #48484a;
+      border: 1px solid #3a3a3c;
+      border-radius: 3px;
+      padding: 1px 5px;
+      flex-shrink: 0;
+    }
+
+    .col-inbox .cards {
+      background-image: repeating-linear-gradient(
+        135deg,
+        transparent,
+        transparent 18px,
+        rgba(255, 255, 255, 0.018) 18px,
+        rgba(255, 255, 255, 0.018) 19px
+      );
+    }
+
+    .col-inbox .card {
+      background: #272729;
+      border-style: dashed;
+      border-color: #363638;
+    }
+    .col-inbox .card:hover { border-color: #48484a; border-style: solid; }
+    .col-inbox .card-title { color: #aeaeb2; }
+
+    .inbox-nudge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: #3a3a3c;
+      letter-spacing: 0.2px;
+      padding: 8px 14px 6px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #232325;
+    }
 
     .cards {
       flex: 1;
@@ -657,7 +699,14 @@
       <div class="column-header">
         <div class="column-indicator"></div>
         <span class="column-title">Inbox</span>
+        <span class="inbox-unprocessed-badge">unprocessed</span>
         <span class="column-count" id="count-inbox">—</span>
+      </div>
+      <div class="inbox-nudge">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+          <path d="M10 6H2M5 3L2 6l3 3" stroke="#3a3a3c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        drop on a project · heading in the sidebar
       </div>
       <div class="cards" id="cards-inbox"></div>
     </div>
@@ -1548,6 +1597,7 @@
     document.body.classList.add('is-dragging');
     dragEl = e.currentTarget;
     dragSourceCol = dragEl.dataset.col;
+    if (dragSourceCol !== 'inbox') document.body.classList.add('is-dragging-from-other');
     e.dataTransfer.setData('taskId', dragEl.dataset.id);
     e.dataTransfer.setData('sourceCol', dragSourceCol);
     e.dataTransfer.effectAllowed = 'move';
@@ -1574,7 +1624,7 @@
 
   function onDragEnd() {
     dragActive = false;
-    document.body.classList.remove('is-dragging');
+    document.body.classList.remove('is-dragging', 'is-dragging-from-other');
     if (dragEl) {
       dragEl.classList.remove('dragging');
       dragEl = null;
