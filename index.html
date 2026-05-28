@@ -139,10 +139,10 @@
 
     .sidebar-proj-wrap { margin: 1px 8px; border-radius: 8px; overflow: hidden; }
     .sidebar-proj-wrap .sidebar-item { margin: 0; border-radius: 0; }
-    .sidebar-proj-wrap.assign-open { background: #242426; }
+    .sidebar-proj-wrap.assign-open { background: #242426; border-radius: 8px 8px 0 0; }
 
-    .assign-panel { max-height: 0; overflow: hidden; transition: max-height 0.2s ease; }
-    .sidebar-proj-wrap.assign-open .assign-panel { max-height: 500px; }
+    .assign-panel { display: none; }
+    .assign-panel.assign-panel-visible { display: block; position: fixed; z-index: 200; background: #242426; border-radius: 0 0 8px 8px; overflow-y: auto; }
 
     .assign-panel-inner { padding: 6px 8px 8px; }
 
@@ -995,6 +995,10 @@
     const zones = [{ uuid: null, title: '(no heading)' }, ...headings];
     const whenOverClass = { someday: 'az-s', anytime: 'az-n', today: 'az-t' };
 
+    const zoneList = document.createElement('div');
+    zoneList.className = 'assign-heading-list';
+    inner.appendChild(zoneList);
+
     for (const h of zones) {
       const zone = document.createElement('div');
       zone.className = 'assign-heading-zone';
@@ -1042,7 +1046,7 @@
         }).catch(err => console.error('Assign failed:', err));
       });
 
-      inner.appendChild(zone);
+      zoneList.appendChild(zone);
     }
 
     panel.appendChild(inner);
@@ -1058,6 +1062,15 @@
     const wrap = document.querySelector(`.sidebar-proj-wrap[data-project-id="${projectId}"]`);
     if (!wrap) return;
     wrap.classList.add('assign-open');
+    const panel = wrap.querySelector('.assign-panel');
+    if (panel) {
+      const rect = wrap.getBoundingClientRect();
+      panel.style.top = rect.bottom + 'px';
+      panel.style.left = rect.left + 'px';
+      panel.style.width = rect.width + 'px';
+      panel.style.maxHeight = (window.innerHeight - rect.bottom - 8) + 'px';
+      panel.classList.add('assign-panel-visible');
+    }
     wrap.querySelectorAll('.assign-when-btn').forEach(b => {
       b.classList.toggle('sel', b.dataset.when === 'anytime');
     });
@@ -1066,7 +1079,11 @@
   function closeAssignPanel() {
     if (!assignOpenId) return;
     const wrap = document.querySelector(`.sidebar-proj-wrap[data-project-id="${assignOpenId}"]`);
-    if (wrap) wrap.classList.remove('assign-open');
+    if (wrap) {
+      wrap.classList.remove('assign-open');
+      const panel = wrap.querySelector('.assign-panel');
+      if (panel) { panel.classList.remove('assign-panel-visible'); panel.style.cssText = ''; }
+    }
     assignOpenId = null;
   }
 
