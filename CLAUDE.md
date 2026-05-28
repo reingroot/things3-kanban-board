@@ -29,3 +29,28 @@ Key routing rules:
 - Ship/deploy/PR → invoke /ship or /land-and-deploy
 - Save progress → invoke /context-save
 - Resume context → invoke /context-restore
+
+## Services & Testing
+
+**Assume services are already running.** The user starts them manually with `make start`. Do not start them yourself.
+
+| Service | URL | Notes |
+|---------|-----|-------|
+| Kanban board | `http://localhost:8080` | Python HTTP server (`server.py`) |
+| things-api | `http://localhost:5225` | `uvx things-api`, proxies Things 3 |
+
+**Browser (for visual testing):** Use the `/browse` skill — it launches headless Chromium from `$HOME/.claude/skills/gstack/browse/dist/browse`. Pass `http://localhost:8080` as the URL. Never use `mcp__claude-in-chrome__*`.
+
+**API testing:** Use `curl http://localhost:5225/<endpoint>` directly from Bash. things-api docs list all endpoints.
+
+**Verify services are up before testing:**
+```bash
+curl -s http://localhost:5225/today | head -c 100   # things-api
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080  # board
+```
+
+# Docs
+IMPORTANT: If you need any information about the things-api library, always read the documentation. Don't inspect the code, unless you can not find the answer in the docs.
+- things-api API documentation: 
+    - https://github.com/jaydenk/things-api/blob/main/docs/api-reference.md
+    - https://github.com/jaydenk/things-api/blob/main/docs/configuration.mdd
