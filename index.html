@@ -2231,6 +2231,7 @@
   // ── View Switching ────────────────────────────────────────────────────────
 
   function setView(viewName) {
+    localStorage.setItem('activeView', viewName);
     focusModeActive = (viewName === 'focus');
     document.querySelectorAll('.view-tab').forEach(t =>
       t.classList.toggle('active', t.dataset.view === viewName)
@@ -2717,7 +2718,10 @@
   document.querySelectorAll('.column').forEach(setupColumn);
   setupVerdictPanel();
   checkFocusBannerOnLoad();
-  load(true);
+  load(true).then(() => {
+    const savedView = localStorage.getItem('activeView');
+    if (savedView && savedView !== 'board') setView(savedView);
+  });
   setInterval(tick, POLL_MS);
 
 </script>
