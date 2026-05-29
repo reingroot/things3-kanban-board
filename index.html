@@ -221,12 +221,16 @@
     /* Inbox sits slightly behind and below the main panel */
     .inbox-section {
       flex-shrink: 0;
-      width: 220px;
+      width: 190px;
       position: relative;
       z-index: 1;
-      transform: translateY(12px);
+      transform: translateY(8px);
       margin-right: -6px;
       filter: brightness(0.88);
+      transition:
+        width 400ms cubic-bezier(0.25, 0, 0, 1),
+        transform 400ms cubic-bezier(0.25, 0, 0, 1),
+        filter 400ms cubic-bezier(0.25, 0, 0, 1);
     }
 
     /* Main columns panel sits on top, casts shadow left onto inbox */
@@ -289,7 +293,14 @@
       flex-shrink: 0;
     }
 
-    .col-inbox   .column-indicator { background: #8e8e93; }
+    #count-inbox {
+      transition:
+        color 400ms cubic-bezier(0.25, 0, 0, 1),
+        font-size 400ms cubic-bezier(0.25, 0, 0, 1),
+        font-weight 400ms cubic-bezier(0.25, 0, 0, 1);
+    }
+
+    .col-inbox   .column-indicator { background: #636366; transition: background 400ms cubic-bezier(0.25, 0, 0, 1); }
     .col-someday .column-indicator { background: #636366; }
     .col-next    .column-indicator { background: #0a84ff; }
     .col-today   .column-indicator { background: #ff9f0a; }
@@ -304,6 +315,7 @@
       border-radius: 3px;
       padding: 1px 5px;
       flex-shrink: 0;
+      transition: color 400ms cubic-bezier(0.25, 0, 0, 1), border-color 400ms cubic-bezier(0.25, 0, 0, 1);
     }
 
     .col-inbox .cards {
@@ -776,12 +788,12 @@
 
 <div class="content">
   <div class="board">
-    <div class="inbox-section">
+    <div class="inbox-section" id="inbox-section">
       <div class="column col-inbox" id="col-inbox" data-col="inbox">
         <div class="column-header">
-          <div class="column-indicator"></div>
+          <div class="column-indicator" id="inbox-indicator"></div>
           <span class="column-title">Inbox</span>
-          <span class="inbox-unprocessed-badge">unprocessed</span>
+          <span class="inbox-unprocessed-badge" id="inbox-badge">unprocessed</span>
           <span class="column-count" id="count-inbox">—</span>
         </div>
         <div class="inbox-nudge">
@@ -1342,6 +1354,7 @@
     // Count badge
     const count = document.getElementById(`count-${col}`);
     if (count) count.textContent = totalCards || '—';
+    if (col === 'inbox') applyInboxUrgency(totalCards);
   }
 
   function makeGroupHeader(title) {
@@ -1781,10 +1794,36 @@
     });
   }
 
+  const INBOX_URGENCY = [
+    { max: 2,  width: '140px', brightness: 0.80, ty: '12px', dot: '#3a3a3c', countColor: '#3a3a3c', countSize: '11px', countWeight: '600', badge: 'quiet',           badgeColor: '#3a3a3c', badgeBorder: '#3a3a3c' },
+    { max: 5,  width: '190px', brightness: 0.88, ty: '8px',  dot: '#636366', countColor: '#48484a', countSize: '11px', countWeight: '600', badge: 'unprocessed',     badgeColor: '#48484a', badgeBorder: '#3a3a3c' },
+    { max: 9,  width: '230px', brightness: 0.95, ty: '4px',  dot: '#ff9f0a', countColor: '#ff9f0a', countSize: '12px', countWeight: '700', badge: 'filling up',      badgeColor: '#ff9f0a', badgeBorder: '#7a4b00' },
+    { max: Infinity, width: '270px', brightness: 1.00, ty: '0px', dot: '#ff453a', countColor: '#ff453a', countSize: '14px', countWeight: '700', badge: 'needs attention', badgeColor: '#ff453a', badgeBorder: '#7a1e1a' },
+  ];
+
+  function applyInboxUrgency(count) {
+    const s = INBOX_URGENCY.find(tier => count <= tier.max);
+    const section   = document.getElementById('inbox-section');
+    const indicator = document.getElementById('inbox-indicator');
+    const badge     = document.getElementById('inbox-badge');
+    const countEl   = document.getElementById('count-inbox');
+    if (!section) return;
+    section.style.width     = s.width;
+    section.style.filter    = `brightness(${s.brightness})`;
+    section.style.transform = `translateY(${s.ty})`;
+    if (indicator) indicator.style.background = s.dot;
+    if (badge) { badge.textContent = s.badge; badge.style.color = s.badgeColor; badge.style.borderColor = s.badgeBorder; }
+    if (countEl) { countEl.style.color = s.countColor; countEl.style.fontSize = s.countSize; countEl.style.fontWeight = s.countWeight; }
+  }
+
   function updateCount(col) {
     const container = document.getElementById(`cards-${col}`);
     const count = document.getElementById(`count-${col}`);
-    if (container && count) count.textContent = container.querySelectorAll('.card').length;
+    if (container && count) {
+      const n = container.querySelectorAll('.card').length;
+      count.textContent = n;
+      if (col === 'inbox') applyInboxUrgency(n);
+    }
   }
 
   // ── Focus Mode ────────────────────────────────────────────────────────────
