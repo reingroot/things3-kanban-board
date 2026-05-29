@@ -128,16 +128,18 @@
       white-space: nowrap;
       overflow: hidden;
     }
-    .sidebar-item > span:first-child {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      min-width: 0;
+    .sidebar-item-left {
+      display: flex; align-items: center; min-width: 0; flex: 1; overflow: hidden;
+    }
+    .sidebar-item-left > span:first-child {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
     }
 
     .sidebar-item:hover { color: #f2f2f7; background: #2c2c2e; }
     .sidebar-item.active { color: #f2f2f7; background: #2c2c2e; }
     .sidebar-item { display: flex; align-items: center; justify-content: space-between; }
     .sidebar-count { font-size: 11px; color: #48484a; flex-shrink: 0; margin-left: 6px; }
+    .sidebar-focus-dot { width: 5px; height: 5px; border-radius: 50%; background: #30d158; flex-shrink: 0; margin-left: 4px; }
 
     /* ── Sidebar: project assignment panel ──────────────────────────────── */
 
@@ -1365,9 +1367,18 @@
 
     const row = document.createElement('div');
     row.className = 'sidebar-item' + (selectedProject === project.uuid ? ' active' : '');
+    const isFocus = focusState && !focusIsStale(focusState) && focusState.projects.includes(project.uuid);
+    const left = document.createElement('span');
+    left.className = 'sidebar-item-left';
     const nameSpan = document.createElement('span');
     nameSpan.textContent = project.title;
-    row.appendChild(nameSpan);
+    left.appendChild(nameSpan);
+    if (isFocus) {
+      const dot = document.createElement('span');
+      dot.className = 'sidebar-focus-dot';
+      left.appendChild(dot);
+    }
+    row.appendChild(left);
     const countEl = document.createElement('span');
     countEl.className = 'sidebar-count';
     countEl.textContent = count > 0 ? String(count) : '';
