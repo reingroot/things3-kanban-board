@@ -5,3 +5,4 @@ __pycache__/
 *-proto*.html
 *proto-*.html
 .claude/settings.local.json
+docs/superpowers/
