@@ -2,3 +2,5 @@
 .gstack/
 __pycache__/
 *.pyc
+*-proto*.html
+*proto-*.html
