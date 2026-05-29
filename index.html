@@ -390,6 +390,7 @@
       border: 1px solid #3a3a3c;
       transition: border-color 0.15s, opacity 0.15s, transform 0.1s;
       user-select: none;
+      position: relative;
     }
 
     .card:active { cursor: grabbing; }
@@ -746,6 +747,215 @@
       .focus-narrow-notice { display: block; }
       .focus-swimlanes { display: none !important; }
     }
+    /* ── Review (Inbox Triage) ───────────────────────────────────────────── */
+
+    .review-badge {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ff453a;
+      margin-left: 4px;
+      vertical-align: middle;
+      position: relative;
+      top: -1px;
+    }
+
+    .review-badge.done { background: #30d158; }
+
+    #review-container {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #review-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 24px 12px;
+      border-bottom: 1px solid #2c2c2e;
+      flex-shrink: 0;
+      gap: 10px;
+    }
+
+    #review-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #f2f2f7;
+    }
+
+    #review-exit-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid #3a3a3c;
+      color: #8e8e93;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+
+    #review-exit-btn:hover { color: #f2f2f7; background: #3a3a3c; }
+
+    #review-board {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .review-col {
+      flex: 1;
+      border-right: 1px solid #2c2c2e;
+      display: flex;
+      flex-direction: column;
+      min-width: 150px;
+    }
+
+    .review-col:last-child { border-right: none; }
+
+    .review-col-header {
+      padding: 12px 14px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #2c2c2e;
+      flex-shrink: 0;
+    }
+
+    .rcol-inbox   .review-col-header { color: #636366; }
+    .rcol-today   .review-col-header { color: #ff9f0a; }
+    .rcol-next    .review-col-header { color: #0a84ff; }
+    .rcol-someday .review-col-header { color: #8e8e93; }
+
+    .review-col-cards {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .review-col-cards::-webkit-scrollbar { width: 4px; }
+    .review-col-cards::-webkit-scrollbar-track { background: transparent; }
+    .review-col-cards::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+
+    .review-col-cards.rdrag-over { background: rgba(10,132,255,0.05); }
+
+    .rcard {
+      background: #2c2c2e;
+      border-radius: 8px;
+      padding: 10px 12px;
+      border: 1px solid #3a3a3c;
+      cursor: grab;
+      user-select: none;
+      position: relative;
+      transition: border-color 0.15s, opacity 0.15s;
+    }
+
+    .rcard:active { cursor: grabbing; }
+    .rcard.rdragging { opacity: 0.35; }
+
+    .rcol-inbox .rcard { border-style: dashed; }
+
+    .rcard-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #f2f2f7;
+      line-height: 1.4;
+    }
+
+    .rcard-meta {
+      font-size: 11px;
+      color: #8e8e93;
+      margin-top: 3px;
+    }
+
+    .rcard-meta-heading { color: #636366; }
+
+    /* ── Project chip (hover quick-assign) ───────────────────────────────── */
+
+    .proj-chip {
+      position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+      font-size: 10px; font-weight: 600; color: #636366;
+      background: #1c1c1e; border: 1px solid #3a3a3c;
+      border-radius: 4px; padding: 3px 7px; cursor: pointer;
+      opacity: 0; transition: opacity 0.12s, color 0.1s, border-color 0.1s, background 0.1s;
+      white-space: nowrap; user-select: none; z-index: 2;
+      pointer-events: none;
+    }
+    .card:hover .proj-chip  { opacity: 1; pointer-events: auto; }
+    .rcard:hover .proj-chip { opacity: 1; pointer-events: auto; }
+    .proj-chip:hover { color: #0a84ff; border-color: rgba(10,132,255,0.4); background: #05131f; }
+
+    /* ── Project picker dropdown ─────────────────────────────────────────── */
+
+    .proj-picker {
+      position: fixed; z-index: 600;
+      background: #242426; border: 1px solid #48484a;
+      border-radius: 11px; overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.75);
+      width: 340px; display: flex; flex-direction: column;
+      animation: projPickIn 0.13s ease-out forwards;
+    }
+    @keyframes projPickIn {
+      from { opacity: 0; transform: translateY(5px) scale(0.97); }
+      to   { opacity: 1; transform: none; }
+    }
+    .proj-picker-sr { padding: 8px 8px 6px; border-bottom: 1px solid #2c2c2e; flex-shrink: 0; }
+    .proj-picker-sr input {
+      width: 100%; background: #1c1c1e; border: 1px solid #3a3a3c;
+      border-radius: 7px; padding: 6px 10px; font-size: 12px;
+      color: #f2f2f7; outline: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .proj-picker-sr input:focus { border-color: #0a84ff; }
+    .proj-picker-panels { display: flex; height: 210px; }
+    .proj-picker-left {
+      width: 155px; flex-shrink: 0; border-right: 1px solid #2c2c2e;
+      overflow-y: auto; padding: 4px;
+    }
+    .proj-picker-left::-webkit-scrollbar { width: 3px; }
+    .proj-picker-left::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+    .proj-picker-right {
+      flex: 1; overflow-y: auto; padding: 4px; display: flex; flex-direction: column;
+    }
+    .proj-picker-right::-webkit-scrollbar { width: 3px; }
+    .proj-picker-right::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
+    .proj-picker-proj {
+      display: flex; align-items: center; gap: 4px;
+      padding: 7px 8px; border-radius: 7px; font-size: 12px;
+      color: #ebebf5; cursor: pointer; transition: background 0.07s;
+    }
+    .proj-picker-proj:hover  { background: #2c2c2e; }
+    .proj-picker-proj.active { background: #1c3a5e; color: #fff; }
+    .proj-picker-proj-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .proj-picker-arrow { font-size: 9px; opacity: 0.4; flex-shrink: 0; }
+    .proj-picker-proj.active .proj-picker-arrow { opacity: 0.8; }
+    .proj-picker-hint {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #3a3a3c; text-align: center;
+      padding: 12px; line-height: 1.7; white-space: pre-line;
+    }
+    .proj-picker-no-heading {
+      padding: 7px 8px; border-radius: 7px; font-size: 11px;
+      color: #636366; cursor: pointer; font-style: italic;
+      transition: background 0.07s;
+    }
+    .proj-picker-no-heading:hover { background: #2c2c2e; color: #8e8e93; font-style: normal; }
+    .proj-picker-hdiv { height: 1px; background: #2c2c2e; margin: 3px 4px 5px; flex-shrink: 0; }
+    .proj-picker-heading {
+      padding: 7px 8px; border-radius: 7px; font-size: 12px;
+      color: #ebebf5; cursor: pointer; transition: background 0.07s;
+    }
+    .proj-picker-heading:hover { background: #0a84ff; color: #fff; }
+    .proj-picker-footer {
+      padding: 5px 10px; border-top: 1px solid #2c2c2e;
+      font-size: 11px; color: #3a3a3c; text-align: center; flex-shrink: 0;
+    }
+
   </style>
 </head>
 <body>
@@ -755,8 +965,9 @@
   <h1>Things 3</h1>
   <button id="briefing-open-btn" onclick="showBriefing()">GTD Briefing</button>
   <div id="view-tabs">
-    <button class="view-tab active" onclick="setFocusMode(false)">Board</button>
-    <button class="view-tab" onclick="setFocusMode(true)">Focus</button>
+    <button class="view-tab active" data-view="board" onclick="setView('board')">Board</button>
+    <button class="view-tab" data-view="focus" onclick="setView('focus')">Focus</button>
+    <button class="view-tab" data-view="review" onclick="setView('review')">Review<span id="review-badge" class="review-badge" style="display:none"></span></button>
   </div>
 </header>
 
@@ -856,6 +1067,31 @@
   <div class="focus-swimlanes" id="focus-swimlanes"></div>
 </div>
 
+<div id="review-container">
+  <div id="review-header">
+    <span id="review-title">Inbox Triage</span>
+    <button id="review-exit-btn" onclick="setView('board')">Done</button>
+  </div>
+  <div id="review-board">
+    <div class="review-col rcol-inbox" id="rcol-inbox">
+      <div class="review-col-header">Inbox</div>
+      <div class="review-col-cards" id="rcards-inbox"></div>
+    </div>
+    <div class="review-col rcol-someday" id="rcol-someday">
+      <div class="review-col-header">Someday</div>
+      <div class="review-col-cards" id="rcards-someday"></div>
+    </div>
+    <div class="review-col rcol-next" id="rcol-next">
+      <div class="review-col-header">Next</div>
+      <div class="review-col-cards" id="rcards-next"></div>
+    </div>
+    <div class="review-col rcol-today" id="rcol-today">
+      <div class="review-col-header">Today</div>
+      <div class="review-col-cards" id="rcards-today"></div>
+    </div>
+  </div>
+</div>
+
 <script src="lib.js"></script>
 <script>
   const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -887,6 +1123,12 @@
   let focusModeActive = false;
   let focusState = JSON.parse(localStorage.getItem('focusState') || 'null');
   let focusPickerSelected = [null, null];
+
+  let reviewActive = false;
+  let reviewKanbanState = null;   // { inbox:[], today:[], next:[], someday:[] } while active
+  let rDragTask = null;           // task object being dragged within review board
+  let rDragSourceCol = null;      // col string of the drag source
+  let activeProjectPicker = null;
 
   // ── Fetch ────────────────────────────────────────────────────────────────
 
@@ -1058,7 +1300,7 @@
       }
     }
 
-    return { sidebar, byCol, projectHeadings };
+    return { sidebar, byCol, projectHeadings, projectMap };
   }
 
   // ── Render: sidebar ───────────────────────────────────────────────────────
@@ -1261,6 +1503,160 @@
     assignToastTimer = setTimeout(() => el.classList.remove('show'), 3000);
   }
 
+  // ── Project picker (hover chip) ───────────────────────────────────────────
+
+  function openProjectPicker(task, col, triggerEl) {
+    closeProjectPicker();
+    if (!currentIndex) return;
+
+    // All projects known from the current data, preserving area order
+    const allProjects = [];
+    const seen = new Set();
+    for (const [uuid, proj] of currentIndex.projectMap) {
+      if (!seen.has(uuid)) { allProjects.push(proj); seen.add(uuid); }
+    }
+    if (allProjects.length === 0) return;
+
+    const whenMap = { inbox: 'anytime', next: 'anytime', anytime: 'anytime', someday: 'someday', today: 'today' };
+    const when = whenMap[col] || 'anytime';
+
+    const picker = document.createElement('div');
+    picker.className = 'proj-picker';
+    activeProjectPicker = picker;
+
+    // Search
+    const srRow = document.createElement('div'); srRow.className = 'proj-picker-sr';
+    const inp = document.createElement('input'); inp.placeholder = 'Search projects…';
+    srRow.appendChild(inp); picker.appendChild(srRow);
+
+    // Panels
+    const panels = document.createElement('div'); panels.className = 'proj-picker-panels';
+    const leftEl  = document.createElement('div'); leftEl.className  = 'proj-picker-left';
+    const rightEl = document.createElement('div'); rightEl.className = 'proj-picker-right';
+    panels.appendChild(leftEl); panels.appendChild(rightEl); picker.appendChild(panels);
+
+    // Footer
+    const footer = document.createElement('div'); footer.className = 'proj-picker-footer';
+    footer.textContent = 'Hover a project · click a heading to assign';
+    picker.appendChild(footer);
+
+    let activeProj = null;
+
+    function renderLeft(query) {
+      const q = (query || '').toLowerCase();
+      leftEl.innerHTML = '';
+      const filtered = allProjects.filter(p => p.title.toLowerCase().includes(q));
+      if (filtered.length === 0) {
+        const none = document.createElement('div'); none.className = 'proj-picker-hint';
+        none.textContent = 'No projects found'; leftEl.appendChild(none); return;
+      }
+      filtered.forEach(proj => {
+        const headings = currentIndex.projectHeadings.get(proj.uuid) || [];
+        const row = document.createElement('div'); row.className = 'proj-picker-proj';
+        if (proj === activeProj) row.classList.add('active');
+        const name = document.createElement('span'); name.className = 'proj-picker-proj-name';
+        name.textContent = proj.title; row.appendChild(name);
+        if (headings.length) {
+          const arr = document.createElement('span'); arr.className = 'proj-picker-arrow';
+          arr.textContent = '▶'; row.appendChild(arr);
+        }
+        row.addEventListener('mouseenter', () => activateProj(proj, row));
+        row.addEventListener('click', () => {
+          if (!headings.length) doProjectAssign(task, proj.uuid, null, when, proj.title, null);
+        });
+        leftEl.appendChild(row);
+      });
+    }
+
+    function activateProj(proj, rowEl) {
+      activeProj = proj;
+      leftEl.querySelectorAll('.proj-picker-proj').forEach(r => r.classList.remove('active'));
+      rowEl.classList.add('active');
+      renderRight(proj);
+      const headings = currentIndex.projectHeadings.get(proj.uuid) || [];
+      footer.textContent = headings.length
+        ? `Assigning to ${proj.title} — pick a heading`
+        : `Click to assign directly to ${proj.title}`;
+    }
+
+    function renderRight(proj) {
+      rightEl.innerHTML = '';
+      const headings = currentIndex.projectHeadings.get(proj.uuid) || [];
+      if (!headings.length) {
+        const hint = document.createElement('div'); hint.className = 'proj-picker-hint';
+        hint.textContent = 'No headings\nClick project name\nto assign';
+        rightEl.appendChild(hint); return;
+      }
+      const noH = document.createElement('div'); noH.className = 'proj-picker-no-heading';
+      noH.textContent = '— Top of project';
+      noH.addEventListener('click', () => doProjectAssign(task, proj.uuid, null, when, proj.title, null));
+      rightEl.appendChild(noH);
+      const div = document.createElement('div'); div.className = 'proj-picker-hdiv';
+      rightEl.appendChild(div);
+      headings.forEach(h => {
+        const it = document.createElement('div'); it.className = 'proj-picker-heading';
+        it.textContent = h.title;
+        it.addEventListener('click', () => doProjectAssign(task, proj.uuid, h.uuid, when, proj.title, h.title));
+        rightEl.appendChild(it);
+      });
+    }
+
+    // Initial empty right panel
+    const hint = document.createElement('div'); hint.className = 'proj-picker-hint';
+    hint.textContent = 'Hover a project\nto see headings';
+    rightEl.appendChild(hint);
+
+    renderLeft('');
+    inp.addEventListener('input', () => { renderLeft(inp.value); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Escape') closeProjectPicker(); });
+
+    // Position: below and right-aligned to trigger, clamp to viewport
+    const rect = triggerEl.getBoundingClientRect();
+    const pickerH = 290;
+    let top  = rect.bottom + 6;
+    let left = rect.right - 340;
+    if (top + pickerH > window.innerHeight - 8) top = rect.top - pickerH - 6;
+    if (left < 8) left = 8;
+    if (left + 340 > window.innerWidth - 8) left = window.innerWidth - 348;
+    picker.style.top  = Math.max(8, top) + 'px';
+    picker.style.left = left + 'px';
+    document.body.appendChild(picker);
+    setTimeout(() => inp.focus(), 10);
+
+    function outside(e) {
+      if (!picker.contains(e.target) && e.target !== triggerEl) closeProjectPicker();
+    }
+    setTimeout(() => document.addEventListener('click', outside), 100);
+    picker._outside = outside;
+  }
+
+  function closeProjectPicker() {
+    if (!activeProjectPicker) return;
+    if (activeProjectPicker._outside) document.removeEventListener('click', activeProjectPicker._outside);
+    activeProjectPicker.remove();
+    activeProjectPicker = null;
+  }
+
+  function doProjectAssign(task, projectUuid, headingUuid, when, projectTitle, headingTitle) {
+    closeProjectPicker();
+    const card = document.querySelector(`.card[data-id="${task.uuid}"]`);
+    showAssignToast(task.title, projectTitle, headingTitle || '(no heading)', when);
+    if (card) card.remove();
+    lastDropTime = Date.now();
+
+    const body = { list_id: projectUuid, when };
+    if (headingUuid) body.heading_id = headingUuid;
+
+    fetch(`/todos/${encodeURIComponent(task.uuid)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(r => {
+      if (!r.ok) r.text().then(t => console.error('Assign failed:', r.status, t));
+      else setTimeout(reload, 800);
+    }).catch(err => console.error('Assign failed:', err));
+  }
+
   function setupSidebarAssign(nav) {
     nav.querySelectorAll('.sidebar-proj-wrap').forEach(wrap => {
       wrap.addEventListener('dragenter', e => {
@@ -1370,10 +1766,12 @@
 
   function renderAll() {
     if (!currentIndex) return;
+    if (lastColData) updateStalenessTracking(lastColData);
     renderSidebar(currentIndex);
     COLS.forEach(col => renderCol(col, currentIndex));
     updateFocusBanner();
     if (focusModeActive) refreshFocusSwimlanes();
+    updateReviewBadge();
   }
 
   // ── Card ──────────────────────────────────────────────────────────────────
@@ -1706,6 +2104,7 @@
   // ── Drag & Drop ───────────────────────────────────────────────────────────
 
   function onDragStart(e) {
+    closeProjectPicker();
     dragActive = true;
     document.body.classList.add('is-dragging');
     dragEl = e.currentTarget;
@@ -1829,29 +2228,41 @@
     }
   }
 
-  // ── Focus Mode ────────────────────────────────────────────────────────────
+  // ── View Switching ────────────────────────────────────────────────────────
 
-  function setFocusMode(active) {
-    focusModeActive = active;
-    document.querySelectorAll('.view-tab').forEach((tab, i) => {
-      tab.classList.toggle('active', i === (active ? 1 : 0));
-    });
+  function setView(viewName) {
+    focusModeActive = (viewName === 'focus');
+    document.querySelectorAll('.view-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.view === viewName)
+    );
     const content = document.querySelector('.content');
     const focusEl = document.getElementById('focus-container');
-    if (active) {
-      content.style.display = 'none';
+    const reviewEl = document.getElementById('review-container');
+
+    content.style.display = (viewName === 'board') ? '' : 'none';
+
+    if (viewName === 'focus') {
       focusEl.classList.add('visible');
       // CSS transitions don't fire on display:none→flex; double-rAF triggers the opacity fade
       focusEl.style.opacity = '0';
       requestAnimationFrame(() => requestAnimationFrame(() => { focusEl.style.opacity = '1'; }));
-      if (focusState && !focusIsStale(focusState)) {
-        showFocusSwimlanes();
-      } else {
-        showFocusPicker();
-      }
+      if (focusState && !focusIsStale(focusState)) showFocusSwimlanes();
+      else showFocusPicker();
     } else {
       focusEl.classList.remove('visible');
-      content.style.display = '';
+    }
+
+    reviewEl.style.display = (viewName === 'review') ? 'flex' : 'none';
+
+    if (viewName === 'review' && !reviewActive) {
+      reviewActive = true;
+      initReviewBoard();
+    }
+    if (viewName !== 'review' && reviewActive) {
+      reviewActive = false;
+      reviewKanbanState = null;
+      localStorage.setItem('lastReviewTimestamp', String(Date.now()));
+      updateReviewBadge();
     }
   }
 
@@ -2194,6 +2605,113 @@
     panel.addEventListener('dragover', e => e.preventDefault());
   }
 
+  // ── Review Wizard ─────────────────────────────────────────────────────────
+
+  function updateReviewBadge() {
+    const badge = document.getElementById('review-badge');
+    if (!badge) return;
+    const lastReview = Number(localStorage.getItem('lastReviewTimestamp') || 0);
+    const overdue = lastReview === 0 || Date.now() - lastReview > 7 * 24 * 60 * 60 * 1000;
+    badge.style.display = 'inline-block';
+    badge.className = overdue ? 'review-badge' : 'review-badge done';
+  }
+
+  // ── Review — Inbox Triage Board ───────────────────────────────────────────
+
+  function initReviewBoard() {
+    const inboxTasks = ((lastColData || {}).inbox || []).filter(t => t.type === 'to-do');
+    reviewKanbanState = { inbox: inboxTasks, today: [], next: [], someday: [] };
+    renderReviewBoard();
+  }
+
+  function renderReviewBoard() {
+    ['inbox', 'today', 'next', 'someday'].forEach(col => {
+      const el = document.getElementById('rcards-' + col);
+      el.innerHTML = '';
+      (reviewKanbanState[col] || []).forEach(task => el.appendChild(makeReviewCard(task, col)));
+      setupReviewColDrop(el, col);
+    });
+  }
+
+  function makeReviewCard(task, col) {
+    const card = document.createElement('div');
+    card.className = 'rcard';
+    card.draggable = true;
+    card.dataset.uuid = task.uuid;
+
+    const title = document.createElement('div');
+    title.className = 'rcard-title';
+    title.textContent = task.title;
+    card.appendChild(title);
+
+    if (task.project_title) {
+      const meta = document.createElement('div');
+      meta.className = 'rcard-meta';
+      meta.textContent = task.project_title;
+      if (task.heading_title) {
+        const h = document.createElement('span');
+        h.className = 'rcard-meta-heading';
+        h.textContent = ' · ' + task.heading_title;
+        meta.appendChild(h);
+      }
+      card.appendChild(meta);
+    }
+
+    if (col !== 'inbox' && !task.project && !task.heading) {
+      const chip = document.createElement('div');
+      chip.className = 'proj-chip';
+      chip.textContent = '+ project';
+      chip.addEventListener('click', e => {
+        e.stopPropagation();
+        openProjectPicker(task, col, chip);
+      });
+      card.appendChild(chip);
+    }
+
+    card.addEventListener('dragstart', e => {
+      rDragTask = task;
+      rDragSourceCol = col;
+      setTimeout(() => card.classList.add('rdragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => card.classList.remove('rdragging'));
+
+    return card;
+  }
+
+  function setupReviewColDrop(cardsEl, targetCol) {
+    cardsEl.addEventListener('dragover', e => {
+      if (!rDragTask || rDragSourceCol === targetCol) return;
+      e.preventDefault();
+      cardsEl.classList.add('rdrag-over');
+    });
+    cardsEl.addEventListener('dragleave', e => {
+      if (!cardsEl.contains(e.relatedTarget)) cardsEl.classList.remove('rdrag-over');
+    });
+    cardsEl.addEventListener('drop', e => {
+      e.preventDefault();
+      cardsEl.classList.remove('rdrag-over');
+      if (!rDragTask || rDragSourceCol === targetCol) return;
+
+      const task = rDragTask;
+      const srcCol = rDragSourceCol;
+      rDragTask = null; rDragSourceCol = null;
+
+      reviewKanbanState[srcCol] = reviewKanbanState[srcCol].filter(t => t.uuid !== task.uuid);
+      reviewKanbanState[targetCol].push(task);
+      renderReviewBoard();
+
+      if (targetCol !== 'inbox') {
+        const whenMap = { today: 'today', next: 'anytime', someday: 'someday' };
+        fetch(`/todos/${encodeURIComponent(task.uuid)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ when: whenMap[targetCol] })
+        }).catch(err => console.error('Review assign failed:', err));
+      }
+    });
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────────
 
   document.querySelectorAll('.column').forEach(setupColumn);
@@ -2201,6 +2719,7 @@
   checkFocusBannerOnLoad();
   load(true);
   setInterval(tick, POLL_MS);
+
 </script>
 </body>
 </html>
