@@ -42,6 +42,40 @@ function focusIsStale(stored) {
   return stored.weekOf !== getWeekMonday(new Date());
 }
 
+// Stamps first-seen timestamps for all to-do tasks across all columns.
+// Column changes reset the timestamp so staleness counts from the move.
+// Called on every renderAll() tick with the raw API response object.
+function updateStalenessTracking(colData) {
+  const stored = JSON.parse(localStorage.getItem('taskFirstSeen') || '{}');
+  const now = Date.now();
+  const colMap = { inbox: 'inbox', today: 'today', anytime: 'next', someday: 'someday' };
+  const allSeen = new Set();
+
+  for (const [apiKey, label] of Object.entries(colMap)) {
+    for (const task of (colData[apiKey] || [])) {
+      if (task.type !== 'to-do') continue;
+      allSeen.add(task.uuid);
+      if (!stored[task.uuid] || stored[task.uuid].column !== label) {
+        stored[task.uuid] = { column: label, firstSeen: now };
+      }
+    }
+  }
+
+  for (const uuid of Object.keys(stored)) {
+    if (!allSeen.has(uuid)) delete stored[uuid];
+  }
+
+  localStorage.setItem('taskFirstSeen', JSON.stringify(stored));
+}
+
+// Returns days a task has been in its current column.
+// Accepts an optional pre-parsed firstSeen object to avoid repeated JSON.parse per card.
+function getDaysInColumn(uuid, firstSeen) {
+  const stored = firstSeen || JSON.parse(localStorage.getItem('taskFirstSeen') || '{}');
+  if (!stored[uuid]) return 0;
+  return Math.floor((Date.now() - stored[uuid].firstSeen) / (1000 * 60 * 60 * 24));
+}
+
 if (typeof module !== 'undefined') {
-  module.exports = { isGhostRecurring, isLogbookContamination, isDuplicatedInToday, getWeekMonday, focusIsStale };
+  module.exports = { isGhostRecurring, isLogbookContamination, isDuplicatedInToday, getWeekMonday, focusIsStale, updateStalenessTracking, getDaysInColumn };
 }

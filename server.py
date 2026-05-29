@@ -17,7 +17,7 @@ try:
             elif line.startswith('THINGS_API_PORT='):
                 PORT_API = int(line.split('=', 1)[1].strip())
 except FileNotFoundError:
-    print(f'Error: things-api not configured. Run: uvx things-api init')
+    print('Error: things-api not configured. Run: uvx things-api init')
     raise SystemExit(1)
 
 if not TOKEN:
