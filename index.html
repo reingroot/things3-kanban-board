@@ -694,6 +694,9 @@
       max-height: 240px; overflow-y: auto;
       display: flex; flex-direction: column; gap: 2px;
     }
+    .focus-picker-list::-webkit-scrollbar { width: 4px; }
+    .focus-picker-list::-webkit-scrollbar-track { background: transparent; }
+    .focus-picker-list::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 2px; }
     .focus-picker-option {
       padding: 8px 12px; border-radius: 6px; color: #aeaeb2;
       font-size: 13px; cursor: pointer; transition: background 0.1s, color 0.1s;
