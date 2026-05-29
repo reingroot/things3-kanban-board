@@ -857,6 +857,8 @@
 
 <script src="lib.js"></script>
 <script>
+  const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const API = '';  // same origin — server.py proxies to things-api
   const POLL_MS = 30_000;
   const DROP_BUFFER_MS = 2000;
@@ -1161,7 +1163,7 @@
     for (const h of zones) {
       const zone = document.createElement('div');
       zone.className = 'assign-heading-zone';
-      zone.innerHTML = `<span class="az-arrow">→</span><span>${h.title}</span>`;
+      zone.innerHTML = `<span class="az-arrow">→</span><span>${esc(h.title)}</span>`;
       zone.dataset.headingUuid = h.uuid || '';
       zone.dataset.headingTitle = h.title;
       zone.dataset.projectUuid = project.uuid;
@@ -1252,7 +1254,7 @@
     const whenCls = when === 'someday' ? 't-blue' : when === 'today' ? 't-orange' : 't-green';
     const whenLabel = when === 'someday' ? 'Someday' : when === 'today' ? 'Today' : 'Next';
     const dest = headingTitle === '(no heading)' ? projectTitle : `${projectTitle} / ${headingTitle}`;
-    el.innerHTML = `<span class="${whenCls}">${cardTitle}</span> → ${dest} · <span class="${whenCls}">${whenLabel}</span>`;
+    el.innerHTML = `<span class="${whenCls}">${esc(cardTitle)}</span> → ${esc(dest)} · <span class="${whenCls}">${whenLabel}</span>`;
     el.classList.add('show');
     clearTimeout(assignToastTimer);
     assignToastTimer = setTimeout(() => el.classList.remove('show'), 3000);
@@ -1599,7 +1601,7 @@
           <div class="b-task-list">${overdueTasks.slice(0, 4).map(t => `
             <div class="b-task-item">
               <div class="b-task-dot" style="background:#ff453a"></div>
-              <span style="flex:1">${t.title || '(untitled)'}</span>
+              <span style="flex:1">${esc(t.title || '(untitled)')}</span>
               <span class="b-col-red" style="font-size:11px">${fmt(t.deadline)}</span>
             </div>`).join('')}</div>` : ''}
           ${dueSoonTasks.length ? `
@@ -1642,7 +1644,7 @@
           ${stalled.length ? `<div class="b-task-list">${stalled.slice(0, 4).map(s => `
             <div class="b-task-item">
               <div class="b-task-dot"></div>
-              <span style="flex:1">${s[0]}</span>
+              <span style="flex:1">${esc(s[0])}</span>
               <span style="color:#636366;font-size:11px">${s[1]} tasks</span>
             </div>`).join('')}</div>` : ''}
           <div class="b-metric-row" style="margin-top:4px">

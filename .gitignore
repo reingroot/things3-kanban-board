@@ -2,6 +2,9 @@
 .gstack/
 __pycache__/
 *.pyc
+.env
+.env.*
+!.env.example
 *-proto*.html
 *proto-*.html
 .claude/settings.local.json

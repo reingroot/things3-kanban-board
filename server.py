@@ -25,13 +25,17 @@ if not TOKEN:
     raise SystemExit(1)
 
 PROXY_PATHS = {'/today', '/anytime', '/someday', '/inbox', '/logbook'}
+SERVED_FILES = {'/', '/index.html', '/lib.js'}
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path.split('?')[0] in PROXY_PATHS:
             self._proxy(self.path)
-        else:
+        elif self.path.split('?')[0] in SERVED_FILES:
             super().do_GET()
+        else:
+            self.send_response(404)
+            self.end_headers()
 
     def do_PUT(self):
         if self.path.startswith('/todos/'):
@@ -88,4 +92,4 @@ class Handler(SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     print(f'Serving on http://localhost:8080 → proxying API to localhost:{PORT_API}')
-    HTTPServer(('', 8080), Handler).serve_forever()
+    HTTPServer(('127.0.0.1', 8080), Handler).serve_forever()
