@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Proto 2 — Pie Slice</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #1c1c1e;
+    color: #f2f2f7;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    overflow: hidden;
+  }
+  .badge {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    background: rgba(10,132,255,0.15);
+    border: 1px solid rgba(10,132,255,0.4);
+    color: #0a84ff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 6px 10px;
+    border-radius: 6px;
+    z-index: 1000;
+    text-transform: uppercase;
+  }
+  .board {
+    height: 100%;
+    display: flex;
+    gap: 16px;
+    padding: 64px 24px 24px;
+  }
+  .column {
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    position: relative;
+  }
+  .column.faded {
+    flex: 1;
+    opacity: 0.25;
+  }
+  .column.today {
+    flex: 1.6;
+    background: #232325;
+    border: 1px solid #3a3a3c;
+    padding: 16px;
+    overflow: hidden;
+  }
+  .col-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8e8e93;
+    margin-bottom: 14px;
+    padding: 0 4px;
+  }
+  .column.today .col-title {
+    color: #f2f2f7;
+    font-size: 13px;
+  }
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .card {
+    background: #2c2c2e;
+    border: 1px solid #3a3a3c;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: #f2f2f7;
+    cursor: grab;
+    user-select: none;
+    transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.15s ease;
+  }
+  .card:active { cursor: grabbing; }
+  .card.dragging { opacity: 0.4; }
+  .card:hover { border-color: #48484a; }
+
+  .arc {
+    position: absolute;
+    right: 0;
+    width: 140px;
+    height: 280px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+    z-index: 50;
+  }
+  .arc.show { opacity: 1; }
+  .arc svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .slice {
+    transition: fill 120ms ease;
+  }
+  .slice-complete { fill: rgba(48,209,88,0.18); }
+  .slice-cancel { fill: rgba(255,69,58,0.18); }
+  .arc.complete-hot .slice-complete { fill: rgba(48,209,88,0.35); }
+  .arc.complete-hot .slice-cancel { fill: rgba(255,69,58,0.08); }
+  .arc.cancel-hot .slice-cancel { fill: rgba(255,69,58,0.35); }
+  .arc.cancel-hot .slice-complete { fill: rgba(48,209,88,0.08); }
+
+  .arc-divider {
+    stroke: #3a3a3c;
+    stroke-width: 1;
+  }
+  .arc-edge {
+    fill: none;
+    stroke: #3a3a3c;
+    stroke-width: 1;
+  }
+  .arc text.icon {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .arc text.label {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .icon-complete { fill: #30d158; }
+  .icon-cancel { fill: #ff453a; }
+  .label-complete { fill: #30d158; }
+  .label-cancel { fill: #ff453a; }
+
+  .hint {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #636366;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+  <div class="badge">Proto 2 — Pie Slice</div>
+
+  <div class="board">
+    <div class="column faded">
+      <div class="col-title">Next</div>
+      <div class="cards">
+        <div class="card">Investigate product for ABI</div>
+        <div class="card">Process WSJ newsletter</div>
+        <div class="card">Open source palantir</div>
+      </div>
+    </div>
+
+    <div class="column faded">
+      <div class="col-title">Someday</div>
+      <div class="cards">
+        <div class="card">Learn Rust basics</div>
+        <div class="card">Revamp home office</div>
+        <div class="card">Podcast backlog</div>
+      </div>
+    </div>
+
+    <div class="column today" id="todayCol">
+      <div class="col-title">Today</div>
+      <div class="cards" id="todayCards">
+        <div class="card" draggable="true">Ship v2.1 hotfix</div>
+        <div class="card" draggable="true">Weekly review</div>
+        <div class="card" draggable="true">Reply to client email</div>
+        <div class="card" draggable="true">Update project status</div>
+        <div class="card" draggable="true">Team standup notes</div>
+      </div>
+
+      <div class="arc" id="arc">
+        <svg viewBox="0 0 140 280" preserveAspectRatio="none">
+          <path class="slice slice-complete" d="M 140 140 L 140 0 A 140 140 0 0 1 0 140 Z"/>
+          <path class="slice slice-cancel" d="M 140 140 L 0 140 A 140 140 0 0 1 140 280 Z"/>
+          <path class="arc-edge" d="M 140 0 A 140 140 0 0 1 140 280"/>
+          <line class="arc-divider" x1="0" y1="140" x2="140" y2="140"/>
+          <text class="icon icon-complete" x="65" y="70">&#10003;</text>
+          <text class="label label-complete" x="65" y="90">COMPLETE</text>
+          <text class="icon icon-cancel" x="65" y="210">&#10005;</text>
+          <text class="label label-cancel" x="65" y="228">CANCEL</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">Drag a Today card right — choose up to complete, down to cancel.</div>
+
+<script>
+(function () {
+  const todayCol = document.getElementById('todayCol');
+  const cards = document.querySelectorAll('#todayCards .card');
+  const arc = document.getElementById('arc');
+  let dragging = null;
+  let cardMidY = 0;
+  let colTopAbs = 0;
+  let activeZone = null;
+
+  function positionArc(card) {
+    const cardRect = card.getBoundingClientRect();
+    const colRect = todayCol.getBoundingClientRect();
+    cardMidY = cardRect.top + cardRect.height / 2 - colRect.top;
+    colTopAbs = colRect.top;
+    let topPx = cardMidY - 140;
+    arc.style.top = topPx + 'px';
+  }
+
+  function showArc() { arc.classList.add('show'); }
+  function hideArc() {
+    arc.classList.remove('show', 'complete-hot', 'cancel-hot');
+    activeZone = null;
+  }
+
+  function commit(action, cardEl) {
+    cardEl.style.transition = 'opacity 200ms ease, transform 200ms ease';
+    cardEl.style.opacity = '0';
+    cardEl.style.transform = 'translateX(30px)';
+    setTimeout(() => cardEl.remove(), 220);
+  }
+
+  cards.forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragging = card;
+      card.classList.add('dragging');
+      try { e.dataTransfer.effectAllowed = 'move'; } catch (_) {}
+      try { e.dataTransfer.setData('text/plain', 'card'); } catch (_) {}
+      positionArc(card);
+      showArc();
+    });
+
+    card.addEventListener('dragend', () => {
+      if (dragging) dragging.classList.remove('dragging');
+      dragging = null;
+      hideArc();
+    });
+  });
+
+  todayCol.addEventListener('dragover', e => {
+    e.preventDefault();
+    if (!dragging) return;
+    try { e.dataTransfer.dropEffect = 'move'; } catch (_) {}
+    const centerY = cardMidY + colTopAbs;
+    if (e.clientY < centerY) {
+      activeZone = 'complete';
+      arc.classList.add('complete-hot');
+      arc.classList.remove('cancel-hot');
+    } else {
+      activeZone = 'cancel';
+      arc.classList.add('cancel-hot');
+      arc.classList.remove('complete-hot');
+    }
+  });
+
+  todayCol.addEventListener('drop', e => {
+    e.preventDefault();
+    if (dragging && activeZone) {
+      commit(activeZone, dragging);
+    }
+    hideArc();
+    if (dragging) dragging.classList.remove('dragging');
+    dragging = null;
+  });
+})();
+</script>
+</body>
+</html>

@@ -247,7 +247,10 @@
       border-right: 1px solid #2c2c2e;
       overflow: hidden;
       transition: background 0.1s;
+      position: relative;
     }
+
+    .col-today { flex: 1.6; }
 
     .column:last-child { border-right: none; }
 
@@ -444,6 +447,63 @@
       0%, 100% { opacity: 0.4; }
       50% { opacity: 0.7; }
     }
+
+    /* ── Verdict panel ───────────────────────────────────────────────────── */
+
+    .verdict-panel {
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 90px;
+      transform: translateX(90px);
+      transition: transform 180ms ease-out;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(28,28,30,0.55);
+      border-left: 1px solid #3a3a3c;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      pointer-events: none;
+    }
+    .verdict-panel.active {
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    .verdict-zone {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 140ms ease, opacity 140ms ease;
+    }
+    .verdict-zone .vz-icon {
+      font-size: 32px;
+      line-height: 1;
+      transition: transform 140ms ease;
+    }
+    .verdict-zone .vz-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .verdict-zone-complete {
+      background: rgba(48,209,88,0.09);
+      border-bottom: 1px solid #2c2c2e;
+    }
+    .verdict-zone-complete .vz-icon  { color: #30d158; }
+    .verdict-zone-complete .vz-label { color: #30d158; }
+    .verdict-zone-cancel {
+      background: rgba(255,69,58,0.09);
+    }
+    .verdict-zone-cancel .vz-icon  { color: #ff453a; }
+    .verdict-zone-cancel .vz-label { color: #ff453a; }
+    .verdict-zone.hot.verdict-zone-complete { background: rgba(48,209,88,0.30); }
+    .verdict-zone.hot.verdict-zone-cancel   { background: rgba(255,69,58,0.30); }
+    .verdict-zone.hot .vz-icon { transform: scale(1.15); }
+    .verdict-zone.dim { opacity: 0.5; }
 
     /* ── GTD Briefing overlay ────────────────────────────────────────────── */
     #briefing-overlay {
@@ -762,6 +822,16 @@
           <span class="column-count" id="count-today">—</span>
         </div>
         <div class="cards" id="cards-today"></div>
+        <div class="verdict-panel" id="verdict-panel">
+          <div class="verdict-zone verdict-zone-complete" data-action="complete">
+            <div class="vz-icon">✓</div>
+            <div class="vz-label">Done</div>
+          </div>
+          <div class="verdict-zone verdict-zone-cancel" data-action="cancel">
+            <div class="vz-icon">✕</div>
+            <div class="vz-label">Cancel</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1629,6 +1699,7 @@
     e.dataTransfer.setData('sourceCol', dragSourceCol);
     e.dataTransfer.effectAllowed = 'move';
     setTimeout(() => dragEl && dragEl.classList.add('dragging'), 0);
+    if (dragSourceCol === 'today') showVerdictPanel();
     const rect = dragEl.getBoundingClientRect();
     const ghost = dragEl.cloneNode(true);
     ghost.classList.remove('dragging');
@@ -1659,6 +1730,7 @@
     document.querySelectorAll('.column, .focus-col-cards').forEach(c => c.classList.remove('drag-over'));
     clearTimeout(assignCloseTimer);
     assignCloseTimer = setTimeout(closeAssignPanel, 150);
+    hideVerdictPanel();
   }
 
   function setupColumn(colEl) {
@@ -2018,9 +2090,75 @@
     });
   }
 
+  // ── Verdict panel ─────────────────────────────────────────────────────────
+
+  function showVerdictPanel() {
+    document.getElementById('verdict-panel').classList.add('active');
+  }
+
+  function hideVerdictPanel() {
+    const panel = document.getElementById('verdict-panel');
+    panel.classList.remove('active');
+    panel.querySelectorAll('.verdict-zone').forEach(z => z.classList.remove('hot', 'dim'));
+  }
+
+  function commitVerdict(action, taskId) {
+    const card = document.querySelector(`.card[data-id="${taskId}"]`);
+    if (card) {
+      card.style.transition = 'opacity 200ms ease, transform 200ms ease';
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(30px)';
+      setTimeout(() => { card.remove(); updateCount('today'); }, 220);
+    }
+    lastDropTime = Date.now();
+    dragActive = false;
+
+    const body = action === 'complete' ? { completed: true } : { canceled: true };
+    fetch(`/todos/${encodeURIComponent(taskId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(r => {
+      if (!r.ok) r.text().then(t => console.error('Verdict failed:', r.status, t));
+      else setTimeout(reload, 800);
+    }).catch(err => console.error('Verdict failed:', err));
+  }
+
+  function setupVerdictPanel() {
+    const panel = document.getElementById('verdict-panel');
+    const zones = panel.querySelectorAll('.verdict-zone');
+
+    zones.forEach(zone => {
+      zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        zones.forEach(z => {
+          z.classList.remove('hot', 'dim');
+          if (z !== zone) z.classList.add('dim'); else z.classList.add('hot');
+        });
+      });
+
+      zone.addEventListener('dragleave', e => {
+        if (!zone.contains(e.relatedTarget))
+          zones.forEach(z => z.classList.remove('hot', 'dim'));
+      });
+
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const taskId = e.dataTransfer.getData('taskId');
+        if (taskId) commitVerdict(zone.dataset.action, taskId);
+        hideVerdictPanel();
+      });
+    });
+
+    panel.addEventListener('dragover', e => e.preventDefault());
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────────
 
   document.querySelectorAll('.column').forEach(setupColumn);
+  setupVerdictPanel();
   checkFocusBannerOnLoad();
   load(true);
   setInterval(tick, POLL_MS);
