@@ -127,11 +127,17 @@
       cursor: pointer;
       white-space: nowrap;
       overflow: hidden;
+    }
+    .sidebar-item > span:first-child {
+      overflow: hidden;
       text-overflow: ellipsis;
+      min-width: 0;
     }
 
     .sidebar-item:hover { color: #f2f2f7; background: #2c2c2e; }
     .sidebar-item.active { color: #f2f2f7; background: #2c2c2e; }
+    .sidebar-item { display: flex; align-items: center; justify-content: space-between; }
+    .sidebar-count { font-size: 11px; color: #48484a; flex-shrink: 0; margin-left: 6px; }
 
     /* ── Sidebar: project assignment panel ──────────────────────────────── */
 
@@ -1327,7 +1333,7 @@
         nav.appendChild(label);
 
         for (const project of item.projects) {
-          nav.appendChild(makeSidebarProjectItem(project, index.projectHeadings));
+          nav.appendChild(makeSidebarProjectItem(project, index.projectHeadings, index.byCol));
         }
 
       } else if (item.type === 'other') {
@@ -1346,14 +1352,29 @@
     return row;
   }
 
-  function makeSidebarProjectItem(project, projectHeadings) {
+  function makeSidebarProjectItem(project, projectHeadings, byCol) {
     const wrap = document.createElement('div');
     wrap.className = 'sidebar-proj-wrap';
     wrap.dataset.projectId = project.uuid;
 
+    let count = 0;
+    for (const col of ['inbox', 'someday', 'anytime', 'today']) {
+      const entry = (byCol[col] || {}).projects?.get(project.uuid);
+      if (entry) {
+        count += entry.noHeading.length;
+        for (const h of entry.headings.values()) count += h.todos.length;
+      }
+    }
+
     const row = document.createElement('div');
     row.className = 'sidebar-item' + (selectedProject === project.uuid ? ' active' : '');
-    row.textContent = project.title;
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = project.title;
+    row.appendChild(nameSpan);
+    const countEl = document.createElement('span');
+    countEl.className = 'sidebar-count';
+    countEl.textContent = count > 0 ? String(count) : '';
+    row.appendChild(countEl);
     row.addEventListener('click', () => { setSelectedProject(project.uuid); renderAll(); });
     wrap.appendChild(row);
 
