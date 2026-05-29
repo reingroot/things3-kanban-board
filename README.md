@@ -57,6 +57,12 @@ Configuration is read from `~/.config/things-api/config`. Run `uvx things-api in
 
 ## Documentation
 
+**Views**
+- [docs/board-view.md](docs/board-view.md) — columns, cards, sidebar filter, drag-to-reschedule, verdict panel
+- [docs/focus-view.md](docs/focus-view.md) — weekly project focus, swimlanes, and stale detection
+- [docs/review-view.md](docs/review-view.md) — inbox triage board, project chip, review badge
+
+**Reference**
 - [docs/architecture.md](docs/architecture.md) — stack overview, data flow, and design decisions
 - [docs/inbox-urgency.md](docs/inbox-urgency.md) — inbox urgency tier system explained
 - [docs/verdict-panel.md](docs/verdict-panel.md) — completing and cancelling Today tasks
