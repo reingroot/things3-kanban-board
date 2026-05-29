@@ -90,6 +90,8 @@
       padding: 8px 0 16px;
       display: flex;
       flex-direction: column;
+      position: relative;
+      z-index: 1;
     }
 
     .sidebar::-webkit-scrollbar { width: 4px; }
@@ -286,11 +288,10 @@
       flex-shrink: 0;
     }
 
-    .col-inbox    .column-indicator { background: #8e8e93; }
-    .col-projects .column-indicator { background: #30d158; }
-    .col-someday  .column-indicator { background: #636366; }
-    .col-next     .column-indicator { background: #0a84ff; }
-    .col-today    .column-indicator { background: #ff9f0a; }
+    .col-inbox   .column-indicator { background: #8e8e93; }
+    .col-someday .column-indicator { background: #636366; }
+    .col-next    .column-indicator { background: #0a84ff; }
+    .col-today   .column-indicator { background: #ff9f0a; }
 
     .inbox-unprocessed-badge {
       font-size: 9px;
@@ -716,8 +717,6 @@
 </div>
 
 <div class="content">
-  <nav class="sidebar" id="sidebar"></nav>
-
   <div class="board">
     <div class="inbox-section">
       <div class="column col-inbox" id="col-inbox" data-col="inbox">
@@ -737,16 +736,9 @@
       </div>
     </div>
 
-    <div class="main-section">
-      <div class="column col-projects" id="col-projects" data-col="projects">
-        <div class="column-header">
-          <div class="column-indicator"></div>
-          <span class="column-title">Projects</span>
-          <span class="column-count" id="count-projects">—</span>
-        </div>
-        <div class="cards" id="cards-projects"></div>
-      </div>
+    <nav class="sidebar" id="sidebar"></nav>
 
+    <div class="main-section">
       <div class="column col-someday" id="col-someday" data-col="someday">
         <div class="column-header">
           <div class="column-indicator"></div>
@@ -1284,58 +1276,6 @@
     if (count) count.textContent = totalCards || '—';
   }
 
-  function renderProjects(index) {
-    const container = document.getElementById('cards-projects');
-    container.innerHTML = '';
-    let totalCards = 0;
-
-    // Aggregate project-affiliated tasks from someday + anytime, keyed by project uuid
-    // Each entry stores {task, col} so drag source col is correct
-    const projectAgg = new Map();
-    for (const col of ['someday', 'anytime']) {
-      const bucket = index.byCol[col];
-      for (const [projectUuid, group] of bucket.projects) {
-        if (!projectAgg.has(projectUuid)) {
-          projectAgg.set(projectUuid, { project: group.project, entries: [] });
-        }
-        const todos = [
-          ...group.noHeading,
-          ...[...group.headings.values()].flatMap(h => h.todos)
-        ];
-        todos.forEach(t => projectAgg.get(projectUuid).entries.push({ task: t, col }));
-      }
-    }
-
-    // Render sidebar-ordered projects
-    const renderedProjects = new Set();
-    for (const sItem of index.sidebar) {
-      if (sItem.type !== 'area') continue;
-      for (const project of sItem.projects) {
-        const group = projectAgg.get(project.uuid);
-        if (!group || group.entries.length === 0) continue;
-        container.appendChild(makeGroupHeader(project.title));
-        group.entries.forEach(({ task, col }) => { container.appendChild(makeCard(task, col)); totalCards++; });
-        renderedProjects.add(project.uuid);
-      }
-    }
-    // Projects not in sidebar order
-    for (const [uuid, group] of projectAgg) {
-      if (renderedProjects.has(uuid) || group.entries.length === 0) continue;
-      container.appendChild(makeGroupHeader(group.project.title));
-      group.entries.forEach(({ task, col }) => { container.appendChild(makeCard(task, col)); totalCards++; });
-    }
-
-    if (totalCards === 0) {
-      const msg = document.createElement('div');
-      msg.className = 'empty-state';
-      msg.textContent = 'No project tasks';
-      container.appendChild(msg);
-    }
-
-    const count = document.getElementById('count-projects');
-    if (count) count.textContent = totalCards || '—';
-  }
-
   function makeGroupHeader(title) {
     const el = document.createElement('div');
     el.className = 'group-header';
@@ -1348,7 +1288,6 @@
     if (!currentIndex) return;
     renderSidebar(currentIndex);
     COLS.forEach(col => renderCol(col, currentIndex));
-    renderProjects(currentIndex);
     updateFocusBanner();
     if (focusModeActive) refreshFocusSwimlanes();
   }
@@ -1437,7 +1376,6 @@
   async function load(initial = false) {
     if (initial) {
       COLS.forEach(c => showLoading(c));
-      showLoading('projects');
       await fetchLogbook();
     }
     try {
@@ -1455,7 +1393,6 @@
   function reload() {
     setError(false);
     COLS.forEach(c => showLoading(c));
-    showLoading('projects');
     load();
   }
 
@@ -1727,7 +1664,7 @@
   }
 
   function setupColumn(colEl) {
-    const isInbox = colEl.dataset.col === 'inbox' || colEl.dataset.col === 'projects';
+    const isInbox = colEl.dataset.col === 'inbox';
 
     colEl.addEventListener('dragover', e => {
       if (isInbox) { e.preventDefault(); e.dataTransfer.dropEffect = 'none'; return; }
