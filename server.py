@@ -46,6 +46,15 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
+    def do_DELETE(self):
+        if self.path.startswith('/todos/'):
+            length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(length) if length else None
+            self._proxy_delete(self.path, body)
+        else:
+            self.send_response(404)
+            self.end_headers()
+
     def _proxy(self, path):
         url = f'http://localhost:{PORT_API}{path}'
         req = urllib.request.Request(url, headers={'Authorization': f'Bearer {TOKEN}'})
@@ -56,6 +65,31 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(data)
+        except Exception as e:
+            self.send_response(502)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(str(e).encode())
+
+    def _proxy_delete(self, path, body):
+        url = f'http://localhost:{PORT_API}{path}'
+        headers = {'Authorization': f'Bearer {TOKEN}'}
+        if body:
+            headers['Content-Type'] = 'application/json'
+        req = urllib.request.Request(url, data=body, method='DELETE', headers=headers)
+        try:
+            with urllib.request.urlopen(req) as resp:
+                data = resp.read()
+                status = resp.status
+            self.send_response(status)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(data)
+        except urllib.error.HTTPError as e:
+            self.send_response(e.code)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(e.read())
         except Exception as e:
             self.send_response(502)
             self.send_header('Content-Type', 'text/plain')

@@ -2155,12 +2155,9 @@
     lastDropTime = Date.now();
     dragActive = false;
 
-    const body = action === 'complete' ? { completed: true } : { canceled: true };
-    fetch(`/todos/${encodeURIComponent(taskId)}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    }).then(r => {
+    const opts = { method: 'DELETE', headers: { 'Content-Type': 'application/json' } };
+    if (action === 'cancel') opts.body = JSON.stringify({ action: 'cancel' });
+    fetch(`/todos/${encodeURIComponent(taskId)}`, opts).then(r => {
       if (!r.ok) r.text().then(t => console.error('Verdict failed:', r.status, t));
       else setTimeout(reload, 800);
     }).catch(err => console.error('Verdict failed:', err));
