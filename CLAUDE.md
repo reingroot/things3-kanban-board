@@ -49,6 +49,11 @@ curl -s http://localhost:5225/today | head -c 100   # things-api
 curl -s -o /dev/null -w "%{http_code}" http://localhost:8080  # board
 ```
 
+## Health Stack
+
+- lint: python3 -m ruff check server.py
+- test: node test.js
+
 # Docs
 IMPORTANT: If you need any information about the things-api library, always read the documentation. Don't inspect the code, unless you can not find the answer in the docs.
 - things-api API documentation: 
