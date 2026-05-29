@@ -1323,10 +1323,7 @@
     nav.appendChild(allBtn);
 
     for (const item of index.sidebar) {
-      if (item.type === 'inbox') {
-        nav.appendChild(makeSidebarItem('Inbox', 'inbox'));
-
-      } else if (item.type === 'area') {
+      if (item.type === 'area') {
         const label = document.createElement('div');
         label.className = 'sidebar-area';
         label.textContent = item.title;
