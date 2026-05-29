@@ -465,7 +465,7 @@
     /* ── Verdict panel ───────────────────────────────────────────────────── */
 
     .verdict-panel {
-      position: absolute;
+      position: fixed;
       top: 0; right: 0; bottom: 0;
       width: 90px;
       transform: translateX(90px);
@@ -1046,18 +1046,19 @@
           <span class="column-count" id="count-today">—</span>
         </div>
         <div class="cards" id="cards-today"></div>
-        <div class="verdict-panel" id="verdict-panel">
-          <div class="verdict-zone verdict-zone-complete" data-action="complete">
-            <div class="vz-icon">✓</div>
-            <div class="vz-label">Done</div>
-          </div>
-          <div class="verdict-zone verdict-zone-cancel" data-action="cancel">
-            <div class="vz-icon">✕</div>
-            <div class="vz-label">Cancel</div>
-          </div>
-        </div>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="verdict-panel" id="verdict-panel">
+  <div class="verdict-zone verdict-zone-complete" data-action="complete">
+    <div class="vz-icon">✓</div>
+    <div class="vz-label">Done</div>
+  </div>
+  <div class="verdict-zone verdict-zone-cancel" data-action="cancel">
+    <div class="vz-icon">✕</div>
+    <div class="vz-label">Cancel</div>
   </div>
 </div>
 
@@ -2427,7 +2428,7 @@
     lane.dataset.projectId = project.uuid;
 
     let totalCount = 0;
-    for (const col of ['someday', 'anytime', 'today']) {
+    for (const col of ['anytime', 'today']) {
       const entry = currentIndex.byCol[col].projects.get(project.uuid);
       if (entry) {
         totalCount += entry.noHeading.length;
@@ -2451,9 +2452,8 @@
     cols.className = 'focus-cols';
 
     for (const { col, label } of [
-      { col: 'someday', label: 'Someday' },
-      { col: 'anytime', label: 'Next'    },
-      { col: 'today',   label: 'Today'   }
+      { col: 'anytime', label: 'Next'  },
+      { col: 'today',   label: 'Today' }
     ]) {
       const focusCol = document.createElement('div');
       focusCol.className = 'focus-col';
