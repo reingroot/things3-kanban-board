@@ -2498,22 +2498,32 @@
       cardsEl.dataset.projectId = project.uuid;
 
       const entry = currentIndex.byCol[col].projects.get(project.uuid);
-      const tasks = [];
+      let totalTasks = 0;
       if (entry) {
-        tasks.push(...entry.noHeading);
-        for (const h of entry.headings.values()) tasks.push(...h.todos);
+        totalTasks += entry.noHeading.length;
+        for (const h of entry.headings.values()) totalTasks += h.todos.length;
       }
 
-      if (tasks.length === 0) {
+      if (totalTasks === 0) {
         const empty = document.createElement('div');
         empty.className = 'focus-col-empty';
         empty.textContent = 'No tasks';
         cardsEl.appendChild(empty);
       } else {
-        for (const task of tasks) {
-          const card = makeCard(task, col);
-          if (card.dataset) card.dataset.projectId = project.uuid;
-          cardsEl.appendChild(card);
+        if (entry) {
+          for (const task of entry.noHeading) {
+            const card = makeCard(task, col);
+            if (card.dataset) card.dataset.projectId = project.uuid;
+            cardsEl.appendChild(card);
+          }
+          for (const [, hGroup] of entry.headings) {
+            cardsEl.appendChild(makeGroupHeader(hGroup.heading.title));
+            for (const task of hGroup.todos) {
+              const card = makeCard(task, col);
+              if (card.dataset) card.dataset.projectId = project.uuid;
+              cardsEl.appendChild(card);
+            }
+          }
         }
       }
 
