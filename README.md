@@ -47,7 +47,16 @@ Configuration is read from `~/.config/things-api/config`. Run `uvx things-api in
 
 - **Drag between columns** — move a task to Someday / Next / Today; Things 3 updates immediately
 - **Assign from Inbox** — drag an inbox card onto a project in the sidebar to assign it to that project, choose a heading, and set its when-state (Someday / Next / Today)
+- **Inbox urgency signals** — the Inbox column grows wider, brightens, and shifts colour as it fills; four tiers from quiet (≤2 items) to needs attention (10+). See [docs/inbox-urgency.md](docs/inbox-urgency.md)
+- **Verdict panel** — drag a Today card toward the right edge to reveal Done / Cancel zones; dropping completes or cancels the task in Things 3. See [docs/verdict-panel.md](docs/verdict-panel.md)
 - **GTD Morning Briefing** — an overlay showing inbox depth, today's load, overdue deadlines, stalled projects, and completion velocity. Auto-shows on load, dismissed until the next day; reopen via the "GTD Briefing" button in the header
+- **Focus mode** — select two projects per week from a sidebar prompt; the board highlights only cards belonging to those projects for the rest of the week
 - **Project filter** — click any project in the sidebar to focus the board on that project; selection persists across reloads
 - **Card chips** — start date and deadline shown as colour-coded chips on each card (amber = due soon, red = overdue)
 - **Inbox separators** — empty-title todos render as visual separator lines for organising the inbox without headings
+
+## Documentation
+
+- [docs/architecture.md](docs/architecture.md) — stack overview, data flow, and design decisions
+- [docs/inbox-urgency.md](docs/inbox-urgency.md) — inbox urgency tier system explained
+- [docs/verdict-panel.md](docs/verdict-panel.md) — completing and cancelling Today tasks
